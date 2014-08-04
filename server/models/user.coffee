@@ -13,6 +13,8 @@ User.destroyAll = (callback) ->
 
 User.getTimezone = (callback) ->
     User.all (err, users) ->
+        console.log err
+        console.log users
         if err
             callback err
         else if users.length is 0

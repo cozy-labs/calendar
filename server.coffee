@@ -1,7 +1,8 @@
 #!/usr/bin/env coffee
+americano = require('americano')
 
 start = (port, callback) ->
-    require('americano').start
+    americano.start
             name: 'Calendar'
             port: port
             host: process.env.HOST or "0.0.0.0"
@@ -22,4 +23,5 @@ if not module.parent
             console.log err.stack
             process.exit 1
 else
-    module.exports = start
+    module.exports = (callback) ->
+        americano._new callback

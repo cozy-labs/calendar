@@ -23,6 +23,8 @@ User.destroyAll = function(callback) {
 
 User.getTimezone = function(callback) {
   return User.all(function(err, users) {
+    console.log(err);
+    console.log(users);
     if (err) {
       return callback(err);
     } else if (users.length === 0) {
