@@ -21,7 +21,7 @@
   "dependencies": {
     "jade": "0.27.6",
     "americano": "0.3.7",
-    "americano-cozy-pouchdb": "0.3.2",
+    "americano-cozy-pouchdb": "0.3.3",
     "async": "0.9.0",
     "cozy-realtime-adapter": "0.11.3",
     "time": "0.11.0",
@@ -38,7 +38,7 @@
     "coffee-script": "latest"
   },
   "bin": {
-    "cozy-calendar": "cozy-calendar"
+    "cozy-calendar": "bin/cozy-calendar"
   },
   "scripts": {
     "test": "cake --use-js tests",
