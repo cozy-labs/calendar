@@ -28,7 +28,7 @@ module.exports = {
   'alarms/:alarmid': {
     get: alarms.read,
     put: alarms.update,
-    del: alarms["delete"]
+    "delete": alarms["delete"]
   },
   'events': {
     get: events.all,
@@ -40,7 +40,7 @@ module.exports = {
   'events/:eventid': {
     get: events.read,
     put: events.update,
-    del: events["delete"]
+    "delete": events["delete"]
   },
   'events/:eventid/:name.ics': {
     get: events.ical
