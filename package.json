@@ -1,5 +1,5 @@
 {
-  "name": "calendar",
+  "name": "cozy-calendar",
   "version": "1.0.2",
   "displayName": "Calendar",
   "description": "Manage your events and alarms with your Cozy.",
@@ -11,7 +11,7 @@
     }
   ],
   "engines": [
-    "node = 0.8.x"
+    "node = 0.10.x"
   ],
   "repository": {
     "type": "git",
@@ -36,6 +36,9 @@
     "request-json": "0.4.11",
     "sinon": "1.10.3",
     "coffee-script": "latest"
+  },
+  "bin": {
+    "cozy-calendar": "cozy-calendar",
   },
   "scripts": {
     "test": "cake --use-js tests",

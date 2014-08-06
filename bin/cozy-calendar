@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+
+var path = require('path');
+var fs = require('fs');
+
+var root = path.join(path.dirname(fs.realpathSync(__filename)), '..', 'build');
+var start = require(path.join(root, 'server')).start;
+var port = process.env.PORT || 9113;
+
+start(root, port, function() {});

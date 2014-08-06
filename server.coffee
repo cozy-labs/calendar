@@ -1,15 +1,15 @@
 #!/usr/bin/env coffee
 americano = require('americano')
 
-start = (port, callback) ->
+start = (root, port, callback) ->
     americano.start
             name: 'Calendar'
             port: port
             host: process.env.HOST or "0.0.0.0"
-            root: __dirname
+            root: root or __dirname
     , (app, server) ->
         User = require './server/models/user'
-        Realtimer = require('cozy-realtime-adapter')
+        Realtimer = require 'cozy-realtime-adapter'
         realtime = Realtimer server : server, ['alarm.*', 'event.*']
         realtime.on 'user.*', -> User.updateTimezone()
         User.updateTimezone (err) ->
@@ -17,11 +17,10 @@ start = (port, callback) ->
 
 if not module.parent
     port = process.env.PORT or 9113
-    start port, (err) ->
+    start null, port, (err) ->
         if err
             console.log "Initialization failed, not starting"
             console.log err.stack
             process.exit 1
-else
-    module.exports = (callback) ->
-        americano._new callback
+
+module.exports.start = start

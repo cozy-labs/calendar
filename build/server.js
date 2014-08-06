@@ -3,12 +3,12 @@ var americano, port, start;
 
 americano = require('americano');
 
-start = function(port, callback) {
+start = function(root, port, callback) {
   return americano.start({
     name: 'Calendar',
     port: port,
     host: process.env.HOST || "0.0.0.0",
-    root: __dirname
+    root: root || __dirname
   }, function(app, server) {
     var Realtimer, User, realtime;
     User = require('./server/models/user');
@@ -27,15 +27,13 @@ start = function(port, callback) {
 
 if (!module.parent) {
   port = process.env.PORT || 9113;
-  start(port, function(err) {
+  start(null, port, function(err) {
     if (err) {
       console.log("Initialization failed, not starting");
       console.log(err.stack);
       return process.exit(1);
     }
   });
-} else {
-  module.exports = function(callback) {
-    return americano._new(callback);
-  };
 }
+
+module.exports.start = start;
