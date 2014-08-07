@@ -2,7 +2,7 @@
   "name": "cozy-calendar",
   "version": "1.0.5",
   "displayName": "Calendar",
-  "description": "Manage your events and alarms with your Cozy.",
+  "description": "Calendars manager application with embedded database.",
   "author": "Cozy Cloud <contact@cozycloud.cc> (http://cozycloud.cc)",
   "licenses": [
     {
@@ -20,7 +20,7 @@
   "main": "build/server.js",
   "dependencies": {
     "jade": "0.27.6",
-    "americano": "0.3.7",
+    "americano": "0.3.9",
     "async": "0.9.0",
     "cozy-realtime-adapter": "0.11.3",
     "time": "0.11.0",
