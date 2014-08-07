@@ -1,16 +1,27 @@
 #!/usr/bin/env coffee
 americano = require('americano')
 
+newApp = (root, port, host, callback) ->
+    options =
+        name: 'Calendar'
+        port: port
+        host: host or "0.0.0.0"
+        root: root or __dirname
+
+    americano.newApp options, callback
+
 start = (root, port, callback) ->
-    americano.start
-            name: 'Calendar'
-            port: port
-            host: process.env.HOST or "0.0.0.0"
-            root: root or __dirname
-    , (app, server) ->
-        User = require './server/models/user'
-        Realtimer = require 'cozy-realtime-adapter'
-        realtime = Realtimer server : server, ['alarm.*', 'event.*']
+    User = require './server/models/user'
+    Realtimer = require 'cozy-realtime-adapter'
+
+    options =
+        name: 'Calendar'
+        port: port
+        host: process.env.HOST or "0.0.0.0"
+        root: root or __dirname
+
+    americano.start options, (app, server) ->
+        realtime = Realtimer server: server, ['alarm.*', 'event.*']
         realtime.on 'user.*', -> User.updateTimezone()
         User.updateTimezone (err) ->
             callback err, app, server
@@ -24,3 +35,5 @@ if not module.parent
             process.exit 1
 
 module.exports.start = start
+
+module.exports.newApp = newApp
