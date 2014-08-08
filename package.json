@@ -27,8 +27,9 @@
     "moment": "2.7.0",
     "cozy-ical": "0.2.0",
     "printit": "0.1.3",
-    "americano-cozy-pouchdb": "0.3.3",
-    "path-extra": "0.2.1"
+    "americano-cozy-pouchdb": "0.3.5",
+    "path-extra": "0.2.1",
+    "multiparty": "3.3.2"
   },
   "devDependencies": {
     "should": "= 1.2.0",
