@@ -11,6 +11,7 @@ if(process.env.POUCHDB_NAME === undefined) {
     fs.mkdirSync(defaultDir);
   }
   process.env.POUCHDB_NAME = defaultDbPath;
+  process.chdir(defaultDir);
 }
 
 var root = path.join(path.dirname(fs.realpathSync(__filename)), '..', 'build');

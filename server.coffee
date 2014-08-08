@@ -1,11 +1,9 @@
 #!/usr/bin/env coffee
 americano = require('americano')
 
-newApp = (root, port, host, callback) ->
+newApp = (root, callback) ->
     options =
         name: 'Calendar'
-        port: port
-        host: host or "0.0.0.0"
         root: root or __dirname
 
     americano.newApp options, callback
