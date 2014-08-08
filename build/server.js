@@ -3,12 +3,10 @@ var americano, newApp, port, start;
 
 americano = require('americano');
 
-newApp = function(root, port, host, callback) {
+newApp = function(root, callback) {
   var options;
   options = {
     name: 'Calendar',
-    port: port,
-    host: host || "0.0.0.0",
     root: root || __dirname
   };
   return americano.newApp(options, callback);
