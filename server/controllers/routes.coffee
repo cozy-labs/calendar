@@ -10,8 +10,8 @@ module.exports =
     '': get: index.index
     'tags': get: index.tags
 
-    # Alarm management
     'alarms':
+    # Alarm management
         get: alarms.all
         post: alarms.create
     'alarmid':
