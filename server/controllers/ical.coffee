@@ -33,8 +33,6 @@ module.exports.import = (req, res) ->
     form = new multiparty.Form()
 
     form.parse req, (err, fields, files) ->
-        console.log fields
-        console.log files
         if files.file.length > 0
             file = files.file[0]
             console.log file

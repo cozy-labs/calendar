@@ -65,8 +65,6 @@ module.exports["import"] = function(req, res) {
   form = new multiparty.Form();
   return form.parse(req, function(err, fields, files) {
     var file, parser;
-    console.log(fields);
-    console.log(files);
     if (files.file.length > 0) {
       file = files.file[0];
       console.log(file);
