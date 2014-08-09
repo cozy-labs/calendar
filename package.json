@@ -1,6 +1,6 @@
 {
   "name": "cozy-calendar",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "displayName": "Calendar",
   "description": "Calendars manager application with embedded database.",
   "author": "Cozy Cloud <contact@cozycloud.cc> (http://cozycloud.cc)",
