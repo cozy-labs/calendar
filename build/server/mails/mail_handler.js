@@ -19,7 +19,7 @@ Event = require('../models/event');
 CozyInstance = require('../models/cozy_instance');
 
 try {
-  CozyAdapter = require('americano-cozy/node_modules/jugglingdb-cozy-adapter');
+  CozyAdapter = require('americano-cozy-pouchdb/node_modules/jugglingdb-pouchdb-adapter');
 } catch (_error) {
   e = _error;
   CozyAdapter = require('jugglingdb-cozy-adapter');

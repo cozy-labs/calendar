@@ -8,17 +8,17 @@ newApp = (root, callback) ->
 
     americano.newApp options, callback
 
-start = (root, port, callback) ->
-    User = require './server/models/user'
-    Realtimer = require 'cozy-realtime-adapter'
+start = (options, callback) ->
 
-    options =
-        name: 'Calendar'
-        port: port
-        host: process.env.HOST or "0.0.0.0"
-        root: root or __dirname
+    options ?= {}
+    options.name = 'Calendar'
+    options.port = options.port
+    options.host = process.env.HOST or "0.0.0.0"
+    options.root = options.root or __dirname
 
     americano.start options, (app, server) ->
+        User = require './server/models/user'
+        Realtimer = require 'cozy-realtime-adapter'
         realtime = Realtimer server: server, ['alarm.*', 'event.*']
         realtime.on 'user.*', -> User.updateTimezone()
         User.updateTimezone (err) ->

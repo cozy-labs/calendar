@@ -12,18 +12,18 @@ newApp = function(root, callback) {
   return americano.newApp(options, callback);
 };
 
-start = function(root, port, callback) {
-  var Realtimer, User, options;
-  User = require('./server/models/user');
-  Realtimer = require('cozy-realtime-adapter');
-  options = {
-    name: 'Calendar',
-    port: port,
-    host: process.env.HOST || "0.0.0.0",
-    root: root || __dirname
-  };
+start = function(options, callback) {
+  if (options == null) {
+    options = {};
+  }
+  options.name = 'Calendar';
+  options.port = options.port;
+  options.host = process.env.HOST || "0.0.0.0";
+  options.root = options.root || __dirname;
   return americano.start(options, function(app, server) {
-    var realtime;
+    var Realtimer, User, realtime;
+    User = require('./server/models/user');
+    Realtimer = require('cozy-realtime-adapter');
     realtime = Realtimer({
       server: server
     }, ['alarm.*', 'event.*']);
