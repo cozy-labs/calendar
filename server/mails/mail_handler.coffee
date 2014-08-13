@@ -8,7 +8,8 @@ log = require('printit')
 
 Event = require '../models/event'
 CozyInstance = require '../models/cozy_instance'
-try CozyAdapter = require('americano-cozy/node_modules/jugglingdb-cozy-adapter')
+try
+    CozyAdapter = require('americano-cozy-pouchdb/node_modules/jugglingdb-pouchdb-adapter')
 catch e then CozyAdapter = require('jugglingdb-cozy-adapter')
 
 

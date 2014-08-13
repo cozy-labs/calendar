@@ -1,4 +1,7 @@
-americano = require 'americano-cozy'
+americano = require 'americano-cozy-pouchdb'
+path = require 'path'
+log = require('printit')
+    prefix: 'Calendar'
 
 module.exports = CozyInstance = americano.getModel 'CozyInstance',
     id:     type: String
@@ -6,18 +9,22 @@ module.exports = CozyInstance = americano.getModel 'CozyInstance',
     locale: type: String
 
 CozyInstance.first = (callback) ->
-    CozyInstance.request 'all', (err, instances) ->
-        if err then callback err
-        else if not instances or instances.length is 0 then callback null, null
-        else  callback null, instances[0]
+    configPath = path.join process.cwd(), 'config'
+
+    try
+        instance = require configPath
+    catch
+        console.log err
+        log.error 'No config file found at ' + configPath
+        instance = {}
+    instance.domain ?= 'default.domain.com'
+    instance.locale ?= 'en'
+    callback null, instance
 
 CozyInstance.getURL = (callback) ->
     CozyInstance.first (err, instance) ->
-        if instance?.domain
-            callback null, instance.domain
-        else
-            callback err or new Error('no instance domain')
+        callback null, instance.domain
 
 CozyInstance.getLocale = (callback) ->
     CozyInstance.first (err, instance) ->
-        callback err, instance?.locale or 'en'
+        callback null, instance.locale

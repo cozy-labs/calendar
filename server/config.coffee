@@ -1,6 +1,12 @@
 americano = require 'americano'
+path = require 'path'
+fs = require 'fs'
 
-staticMiddleware = americano.static __dirname + '/../client/public', maxAge: 86400000
+root = path.join path.dirname(fs.realpathSync(__filename))
+clientPath = path.join root, '..', 'client'
+publicPath = path.join clientPath, 'public'
+staticMiddleware = americano.static publicPath,
+    maxAge: 86400000
 
 module.exports =
 
@@ -20,7 +26,7 @@ module.exports =
                 showStack: true
         ]
         set:
-            views: './client'
+            views: clientPath
 
     development: [
         americano.logger 'dev'
@@ -31,5 +37,5 @@ module.exports =
     ]
 
     plugins: [
-        'americano-cozy'
+        'americano-cozy-pouchdb'
     ]

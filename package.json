@@ -1,8 +1,8 @@
 {
-  "name": "Calendar",
-  "version": "1.0.1",
+  "name": "cozy-calendar",
+  "version": "1.0.10",
   "displayName": "Calendar",
-  "description": "Manage your events and alarms with your Cozy.",
+  "description": "Calendars manager application with embedded database.",
   "author": "Cozy Cloud <contact@cozycloud.cc> (http://cozycloud.cc)",
   "licenses": [
     {
@@ -11,23 +11,25 @@
     }
   ],
   "engines": [
-    "node = 0.8.x"
+    "node = 0.10.x"
   ],
   "repository": {
     "type": "git",
     "url": "https://github.com/cozy/cozy-calendar.git"
   },
-  "main": "server.coffee",
+  "main": "build/server.js",
   "dependencies": {
     "jade": "0.27.6",
-    "americano": "0.3.5",
-    "americano-cozy": "0.2.6",
+    "americano": "0.3.10",
     "async": "0.9.0",
     "cozy-realtime-adapter": "0.11.3",
     "time": "0.11.0",
     "moment": "2.7.0",
     "cozy-ical": "0.2.0",
-    "printit": "0.1.3"
+    "printit": "0.1.3",
+    "americano-cozy-pouchdb": "0.3.10",
+    "path-extra": "0.2.1",
+    "multiparty": "3.3.2"
   },
   "devDependencies": {
     "should": "= 1.2.0",
@@ -36,6 +38,9 @@
     "request-json": "0.4.11",
     "sinon": "1.10.3",
     "coffee-script": "latest"
+  },
+  "bin": {
+    "cozy-calendar": "bin/cozy-calendar"
   },
   "scripts": {
     "test": "cake --use-js tests",

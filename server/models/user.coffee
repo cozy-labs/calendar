@@ -1,4 +1,7 @@
-americano = require 'americano-cozy'
+americano = require 'americano-cozy-pouchdb'
+path = require 'path'
+log = require('printit')
+    prefix: 'Calendar'
 
 module.exports = User = americano.getModel 'User',
     email    : type : String
@@ -12,19 +15,19 @@ User.destroyAll = (callback) ->
     User.requestDestroy "all", callback
 
 User.getTimezone = (callback) ->
-    User.all (err, users) ->
-        if err
-            callback err
-        else if users.length is 0
-            callback new Error('no user')
-        else
-            callback null, users[0].timezone
+    configPath = path.join process.cwd(), 'config'
+
+    try
+        user = require configPath
+    catch err
+        console.log err
+        log.error 'No config file found at ' + configPath
+        user = {}
+
+    user.timezone ?= "Europe/Paris"
+    callback null, user.timezone
 
 User.updateTimezone = (callback) ->
     User.getTimezone (err, timezone) ->
-        if err
-            console.log err
-            User.timezone = "Europe/Paris"
-        else
-            User.timezone = timezone or "Europe/Paris"
+        User.timezone = timezone
         callback?()
