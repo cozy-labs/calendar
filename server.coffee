@@ -1,5 +1,7 @@
 #!/usr/bin/env coffee
-americano = require('americano')
+americano = require 'americano'
+fs = require 'fs'
+path = require 'path'
 
 newApp = (root, callback) ->
     options =
@@ -15,6 +17,11 @@ start = (options, callback) ->
     options.port = options.port
     options.host = process.env.HOST or "0.0.0.0"
     options.root = options.root or __dirname
+
+    configPath = path.join process.cwd(), 'config.json'
+    unless fs.existsSync configPath
+        config = apps: {}
+        fs.writeFileSync configPath, JSON.stringify config
 
     americano.start options, (app, server) ->
         User = require './server/models/user'
