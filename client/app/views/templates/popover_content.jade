@@ -27,7 +27,7 @@ else if type = 'event'
         span.timeseparator &nbsp;,
         input#input-diff.col-xs2.input-mini(type="number", value=diff,
             placeholder=0, min=0)
-        span.timeseparator= '&nbsp;' + t('days later')
+        span.timeseparator= t('days later')
 
     .line
         input#input-desc.input(type="text", value=description,
@@ -37,6 +37,6 @@ else if type = 'event'
         a#showmap(target="_blank").btn: i.icon-white.icon-map-marker
 
     .popover-footer.line
-        a.advanced-link(href='#'+advancedUrl)= t('advanced')
+        //a.advanced-link(href='#'+advancedUrl)= t('advanced')
         span &nbsp;
         a.btn.add= editionMode ? t('Edit') : t('Create')
