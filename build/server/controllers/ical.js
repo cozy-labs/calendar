@@ -67,7 +67,6 @@ module.exports["import"] = function(req, res) {
     var file, parser;
     if (files.file.length > 0) {
       file = files.file[0];
-      console.log(file);
       parser = new ical.ICalParser();
       return parser.parseFile(file.path, function(err, result) {
         if (err) {
@@ -77,10 +76,12 @@ module.exports["import"] = function(req, res) {
             error: 'error occured while saving file'
           }, 500);
         } else {
-          return fs.unlink(file.path, function() {
-            return res.send({
-              events: Event.extractEvents(result),
-              alarms: Alarm.extractAlarms(result, User.timezone)
+          return User.getTimezone(function(err, timezone) {
+            return fs.unlink(file.path, function() {
+              return res.send({
+                events: Event.extractEvents(result),
+                alarms: Alarm.extractAlarms(result, timezone)
+              });
             });
           });
         }

@@ -50,7 +50,9 @@ start = function(options, callback) {
 
 if (!module.parent) {
   port = process.env.PORT || 9113;
-  start(null, port, function(err) {
+  start({
+    port: port
+  }, function(err) {
     if (err) {
       console.log("Initialization failed, not starting");
       console.log(err.stack);
