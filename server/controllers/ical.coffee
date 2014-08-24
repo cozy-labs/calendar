@@ -35,7 +35,6 @@ module.exports.import = (req, res) ->
     form.parse req, (err, fields, files) ->
         if files.file.length > 0
             file = files.file[0]
-            console.log file
             parser = new ical.ICalParser()
             parser.parseFile file.path, (err, result) ->
                 if err
@@ -43,9 +42,10 @@ module.exports.import = (req, res) ->
                     console.log err.message
                     res.send error: 'error occured while saving file', 500
                 else
-                    fs.unlink file.path, ->
-                        res.send
-                            events: Event.extractEvents result
-                            alarms: Alarm.extractAlarms result, User.timezone
+                    User.getTimezone (err, timezone) ->
+                        fs.unlink file.path, ->
+                            res.send
+                                events: Event.extractEvents result
+                                alarms: Alarm.extractAlarms result, timezone
         else
             res.send error: 'no file sent', 500
