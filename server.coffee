@@ -33,7 +33,7 @@ start = (options, callback) ->
 
 if not module.parent
     port = process.env.PORT or 9113
-    start null, port, (err) ->
+    start port: port, (err) ->
         if err
             console.log "Initialization failed, not starting"
             console.log err.stack
