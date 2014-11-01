@@ -45,25 +45,5 @@
   "scripts": {
     "test": "cake --use-js tests",
     "start": "node build/server.js"
-  },
-  "cozy-permissions": {
-    "Alarm": {
-      "description": "Creates and edits your alarms."
-    },
-    "Event": {
-      "description": "Creates and edits your events."
-    },
-    "User": {
-      "description": "Used to recover your timezone"
-    },
-    "CozyInstance": {
-      "description": "Used to recover your language setting and your cozy's domain"
-    },
-    "Contact": {
-      "description": "Invite your contacts to an event"
-    },
-    "send mail from user": {
-      "description": "Send invitations by mail"
-    }
   }
 }
