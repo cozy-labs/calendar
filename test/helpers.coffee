@@ -54,7 +54,7 @@ helpers.createEvent = (start, end, place, description, callback) ->
             description: description
             tags: ['my calendar']
 
-        Event.create evt, callback
+        helpers.createEventFromObject evt, callback
 
 # Create an alarm from object
 helpers.createEventFromObject = (data, callback) ->

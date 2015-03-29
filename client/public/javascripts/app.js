@@ -298,6 +298,15 @@ module.exports = CalendarCollection = (function(_super) {
     return this.map(stringify);
   };
 
+  CalendarCollection.prototype.comparator = function(a, b) {
+    var aName, bName;
+    aName = a.get('name');
+    bName = b.get('name');
+    return aName.localeCompare(bName, {}, {
+      sensitivity: 'base'
+    });
+  };
+
   CalendarCollection.prototype.toAutoCompleteSource = function() {
     return this.map(function(tag) {
       return _.extend({
@@ -639,7 +648,7 @@ module.exports = RealEventGeneratorCollection = (function(_super) {
     end = this.firstDate.clone();
     this.firstDate.add(-1, 'month');
     start = this.firstDate.clone();
-    i = this.baseCollection.indexOf(this.firsGeneratedEvent);
+    i = this.baseCollection.indexOf(this.firstGeneratedEvent);
     this.firstGeneratedEvent = null;
     while (i >= 0 && this.firstGeneratedEvent === null) {
       item = this.baseCollection.at(i);
@@ -1052,7 +1061,7 @@ hslToRgb = function(h, s, l) {
 
 module.exports = function(tag) {
   var colour, h, hash, i, l, s, _i, _ref;
-  if (tag !== "my calendar") {
+  if (tag !== t('default calendar name')) {
     hash = 0;
     for (i = _i = 0, _ref = tag.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
       hash = tag.charCodeAt(i) + (hash << 5) - hash;
@@ -1546,6 +1555,7 @@ module.exports = ViewCollection = (function(_super) {
 
 ;require.register("locales/en", function(exports, require, module) {
 module.exports = {
+  "default calendar name": "my calendar",
   "Add": "Add",
   "event": "Event",
   "create event": "Event creation",
@@ -1559,6 +1569,8 @@ module.exports = {
   "change color": "Change color",
   "rename": "Rename",
   "export": "Export",
+  "remove": "Remove event",
+  "duplicate": "Duplicate event",
   "Place": "Place",
   'all day': 'all day',
   'All day': 'All day',
@@ -1615,6 +1627,8 @@ module.exports = {
   "ON": "on",
   "OFF": "off",
   "no description": "No description",
+  "add calendar": "Add calendar",
+  "new calendar": "New calendar",
   "recurrence": "Recurrence",
   "recurrence rule": "Recurrence rules",
   "make reccurent": "Make recurrent",
@@ -1745,8 +1759,9 @@ module.exports = {
 
 ;require.register("locales/fr", function(exports, require, module) {
 module.exports = {
+  "default calendar name": "mon agenda",
   "Add": "Ajouter",
-  "event": "événement",
+  "event": "évènement",
   "create event": "Création d'un évènement",
   "edit event": "Modification d'un évènement",
   "edit": "Enregistrer",
@@ -1758,6 +1773,8 @@ module.exports = {
   "delete": "Supprimer",
   "rename": "Renommer",
   "export": "Exporter",
+  "remove": "Supprimer l'évènement",
+  "duplicate": "Dupliquer l'évènement",
   "Place": "Lieu",
   'all day': 'journée entière',
   'All day': 'Journée entière',
@@ -1802,17 +1819,19 @@ module.exports = {
   "Week": "Semaine",
   "Display": "Notification",
   "DISPLAY": "Notification",
-  "EMAIL": "E-mail",
-  "BOTH": "E-mail & notification",
+  "EMAIL": "Email",
+  "BOTH": "Email & notification",
   "display previous events": "Afficher les évènements précédents",
   "display next events": "Afficher les évènements suivants",
   "are you sure": "Êtes-vous sûr(e) ?",
-  "confirm delete calendar": "Vous êtes sur le point de supprimer tous les événements associés à %{calendarName}. Êtes-vous sûr(e) ?",
+  "confirm delete calendar": "Vous êtes sur le point de supprimer tous les évènements associés à %{calendarName}. Êtes-vous sûr(e) ?",
   "advanced": "Détails",
   "enter email": "Entrer l'adresse email",
   "ON": "activée",
   "OFF": "désactivée",
   "no description": "Sans description",
+  "add calendar": "Ajouter un calendrier",
+  "new calendar": "Nouveau calendrier",
   "recurrence": "Récurrence",
   "recurrence rule": "Règle de récurrence",
   "make reccurent": "Rendre récurrent",
@@ -1834,11 +1853,11 @@ module.exports = {
   "days": "jours",
   "day": "jour",
   "weeks": "semaines",
-  "week": "semaines",
+  "week": "semaine",
   "months": "mois",
   "month": "mois",
   "years": "ans",
-  "year": "ans",
+  "year": "an",
   "until": "jusqu'au",
   "for": "pour",
   "on": "le",
@@ -1873,7 +1892,7 @@ module.exports = {
   'modal send mails': 'Envoyer une notification',
   'yes': 'Oui',
   'no': 'Non',
-  "no summary": "Le titre est obligatoire",
+  "no summary": "Le titre est obligatoire.",
   "start after end": "La fin est après le début.",
   "invalid start date": "Le début est invalide.",
   "invalid end date": "La fin est invalide.",
@@ -1883,7 +1902,7 @@ module.exports = {
   "synchronization": "Synchronisation",
   "mobile sync": "Synchro Mobile (CalDAV)",
   "import an ical file": "Pour importer un fichier iCal dans votre agenda, commencez par cliquer sur ce bouton pour le précharger :",
-  "link imported events with calendar": "Lier les événements à importer avec le calendrier suivant:",
+  "link imported events with calendar": "Lier les évènements à importer avec le calendrier suivant :",
   "download a copy of your calendar": "Sélectionner un agenda puis cliquer sur le bouton exporter pour télécharger une copie de l'agenda comme un fichier iCal :",
   "icalendar export": "Exporter ICalendar",
   "icalendar import": "Importer ICalendar",
@@ -1896,8 +1915,8 @@ module.exports = {
   "sync help link": "guide pas à pas !",
   "install the sync module": "Installer le module Sync depuis l'applithèque.",
   "connect to it and follow": "Vous connecter et suivre les instructions relatives à CalDAV.",
-  "some event fail to save": "La sauvegarde d'un événement a échoué.",
-  "imported events": "Nombre d'événements importés",
+  "some event fail to save": "La sauvegarde d'un évènement a échoué.",
+  "imported events": "Nombre d'évènements importés",
   "import finished": "Votre importation est terminée !",
   "import error occured for": "Une erreur est survenue pour un de ces éléments ",
   "export your calendar": "Exporter votre agenda",
@@ -1927,12 +1946,12 @@ module.exports = {
   'Dec': 'Déc',
   'email date format': 'DD/MM/YYYY [à] HH[h]mm',
   'email date format allday': 'DD/MM/YYYY [toute la journée]',
-  'email invitation title': "Invitation à l'événement \"%{description}\"",
-  'email invitation content': "Bonjour, je souhaiterais vous inviter à l'événement suivant :\n%{description} %{place}\nLe %{date}\nSerez-vous présent ?\n\nOui\n%{url}?status=ACCEPTED&key=%{key}\n\nNon\n%{url}?status=DECLINED&key=%{key}",
-  'email update title': "L'événement \"%{description}\" a changé",
-  'email update content': "Un événement auquel vous participez a changé :\n%{description} %{place}\nLe %{date}\n\nJe viens toujours\n%{url}?status=ACCEPTED&key=%{key}\n\nJe ne viens plus\n%{url}?status=DECLINED&key=%{key}\n",
-  'email delete title': 'Cet événement a été annulé : %{description}',
-  'email delete content': "Cet événement a été annulé :\n%{description} %{place}\nLe %{date}"
+  'email invitation title': "Invitation à l'évènement \"%{description}\"",
+  'email invitation content': "Bonjour, je souhaiterais vous inviter à l'évènement suivant :\n%{description} %{place}\nLe %{date}\nSerez-vous présent ?\n\nOui\n%{url}?status=ACCEPTED&key=%{key}\n\nNon\n%{url}?status=DECLINED&key=%{key}",
+  'email update title': "L'évènement \"%{description}\" a changé",
+  'email update content': "Un évènement auquel vous participez a changé :\n%{description} %{place}\nLe %{date}\n\nJe viens toujours\n%{url}?status=ACCEPTED&key=%{key}\n\nJe ne viens plus\n%{url}?status=DECLINED&key=%{key}\n",
+  'email delete title': 'Cet évènement a été annulé : %{description}',
+  'email delete content': "Cet évènement a été annulé :\n%{description} %{place}\nLe %{date}"
 };
 });
 
@@ -1988,7 +2007,7 @@ module.exports = Event = (function(_super) {
       details: '',
       description: '',
       place: '',
-      tags: ['my calendar']
+      tags: [t('default calendar name')]
     };
   };
 
@@ -2158,9 +2177,10 @@ module.exports = ScheduleItem = (function(_super) {
   ScheduleItem.prototype.endDateField = false;
 
   ScheduleItem.prototype.initialize = function() {
-    var _ref;
+    var defaultCalendarName, _ref;
+    defaultCalendarName = t('default calendar name');
     if (!((_ref = this.get('tags')) != null ? _ref.length : void 0)) {
-      this.set('tags', ['my calendar']);
+      this.set('tags', [defaultCalendarName]);
     }
     this.on('change:' + this.startDateField, (function(_this) {
       return function() {
@@ -2852,6 +2872,7 @@ module.exports = EventPopOver = (function(_super) {
     'click .add': 'onAddClicked',
     'click .advanced-link': 'onAdvancedClicked',
     'click .remove': 'onRemoveClicked',
+    'click .duplicate': 'onDuplicateClicked',
     'click .close': 'selfclose',
     'changeTime.timepicker .input-start': 'onSetStart',
     'changeTime.timepicker .input-end-time': 'onSetEnd',
@@ -2881,6 +2902,8 @@ module.exports = EventPopOver = (function(_super) {
     var timepickerEvents;
     this.addButton = this.$('.btn.add');
     this.removeButton = this.$('.remove');
+    this.spinner = this.$('.remove-spinner');
+    this.duplicateButton = this.$('.duplicate');
     this.$container = this.$('.popover-content-wrapper');
     timepickerEvents = {
       'focus': function() {
@@ -2895,6 +2918,7 @@ module.exports = EventPopOver = (function(_super) {
     };
     if (this.model.isNew()) {
       this.removeButton.hide();
+      this.duplicateButton.hide();
     }
     this.$('input[type="time"]').attr('type', 'text').timepicker(defTimePickerOpts).delegate(timepickerEvents);
     this.$('input[type="date"]').attr('type', 'text').datetimepicker(defDatePickerOps);
@@ -2904,6 +2928,7 @@ module.exports = EventPopOver = (function(_super) {
       small: true,
       source: app.calendars.toAutoCompleteSource()
     });
+    this.model.setCalendar(this.calendar.value());
     this.calendar.on('edition-complete', (function(_this) {
       return function(value) {
         return _this.model.setCalendar(value);
@@ -2941,13 +2966,20 @@ module.exports = EventPopOver = (function(_super) {
   };
 
   EventPopOver.prototype.getRenderData = function() {
-    var data, _ref;
+    var currentCalendar, data, defaultCalendar, firstCalendar, _ref, _ref1, _ref2;
+    firstCalendar = (_ref = app.calendars) != null ? (_ref1 = _ref.at(0)) != null ? _ref1.get('name') : void 0 : void 0;
+    defaultCalendar = t('default calendar name');
+    if (this.model.isNew()) {
+      currentCalendar = firstCalendar || defaultCalendar;
+    } else {
+      currentCalendar = ((_ref2 = this.model.get('tags')) != null ? _ref2[0] : void 0) || defaultCalendar;
+    }
     return data = _.extend({}, this.model.toJSON(), {
       tFormat: tFormat,
       dFormat: dFormat,
       editionMode: !this.model.isNew(),
       advancedUrl: "" + (this.parentView.getUrlHash()) + "/" + this.model.id,
-      calendar: ((_ref = this.model.get('tags')) != null ? _ref[0] : void 0) || '',
+      calendar: currentCalendar,
       allDay: this.model.isAllDay(),
       sameDay: this.model.isSameDay(),
       start: this.model.getStartDateObject(),
@@ -3069,9 +3101,9 @@ module.exports = EventPopOver = (function(_super) {
   };
 
   EventPopOver.prototype.onRemoveClicked = function() {
-    this.removeButton.css('width', '42px');
-    this.removeButton.spin('tiny');
     if (confirm(t('are you sure'))) {
+      this.spinner.show();
+      this.removeButton.hide();
       return this.model.destroy({
         wait: true,
         error: function() {
@@ -3079,15 +3111,26 @@ module.exports = EventPopOver = (function(_super) {
         },
         complete: (function(_this) {
           return function() {
-            _this.removeButton.spin();
-            _this.removeButton.css('width', '14px');
+            _this.spinner.show();
             return _this.selfclose();
           };
         })(this)
       });
-    } else {
-      return this.removeButton.spin();
     }
+  };
+
+  EventPopOver.prototype.onDuplicateClicked = function() {
+    var attrs, calendarEvent, key, value, _ref;
+    attrs = [];
+    _ref = this.model.attributes;
+    for (key in _ref) {
+      value = _ref[key];
+      attrs[key] = value;
+    }
+    delete attrs.id;
+    delete attrs._id;
+    calendarEvent = new Event(attrs);
+    return calendarEvent.save();
   };
 
   EventPopOver.prototype.onAddClicked = function() {
@@ -3115,10 +3158,8 @@ module.exports = EventPopOver = (function(_super) {
         wait: true,
         success: (function(_this) {
           return function() {
-            var collection;
             _this.calendar.save();
-            collection = app['events'];
-            return collection.add(_this.model);
+            return app.events.add(_this.model);
           };
         })(this),
         error: function() {
@@ -3590,7 +3631,7 @@ module.exports = EventModal = (function(_super) {
 
   EventModal.prototype.inputDateDTPickerFormat = 'dd/mm/yyyy';
 
-  EventModal.prototype.exportDateFormat = 'YYYY-MM-DD-HH-mm';
+  EventModal.prototype.exportDateFormat = 'YYYY-MM-DD';
 
   EventModal.prototype.collectionEl = '#guests-list';
 
@@ -3785,12 +3826,16 @@ module.exports = EventModal = (function(_super) {
   };
 
   EventModal.prototype.getRenderData = function() {
-    var data, f, _ref, _ref1;
+    var data, day, desc, f, specialCharacters, _ref, _ref1;
+    specialCharacters = /[-'`~!@#$%^&*()_|+=?;:'",.<>\{\}\[\]\\\/]/gi;
+    desc = this.model.get('description').replace(specialCharacters, '');
+    desc = desc.replace(/\ /g, '-');
+    day = moment(this.model.get('start')).format(this.exportDateFormat);
     data = _.extend({}, this.model.toJSON(), {
       summary: this.model.get('description'),
       description: this.model.get('details'),
       allDay: this.model.isAllDay(),
-      exportdate: this.model.getStartDateObject().format(this.exportDateFormat)
+      file: "" + day + "-" + desc
     });
     f = this.model.isAllDay() ? this.inputDateFormat : this.inputDateTimeFormat;
     data.start = this.model.getStartDateObject().format(f);
@@ -3839,6 +3884,7 @@ module.exports = EventModal = (function(_super) {
       success: (function(_this) {
         return function() {
           _this.calendar.save();
+          app.events.add(_this.model);
           return _this.close();
         };
       })(this),
@@ -4002,7 +4048,7 @@ module.exports = ReminderView = (function(_super) {
       value: (_ref = this.model.action) === 'EMAIL' || _ref === 'BOTH'
     });
     this.actionNotif = new Toggle({
-      icon: 'exclamation-sign',
+      icon: 'exclamation',
       label: 'home notification',
       value: (_ref1 = this.model.action) === 'DISPLAY' || _ref1 === 'BOTH'
     });
@@ -4476,7 +4522,7 @@ module.exports = ImportView = (function(_super) {
     var addError, calendar, counter, events, finalizeImport, importEvent, total, updateCounter;
     calendar = this.calendarCombo.value();
     if ((calendar == null) || calendar === '') {
-      calendar = 'my calendar';
+      calendar = t('default calendar name');
     }
     total = this.eventList.collection.length;
     counter = 0;
@@ -4826,8 +4872,8 @@ module.exports = EventItemView = (function(_super) {
   EventItemView.prototype.template = require('./templates/list_view_item');
 
   EventItemView.prototype.events = {
-    'click .icon-pencil': 'editMode',
-    'click .icon-trash': 'deleteModel'
+    'click .edit': 'editMode',
+    'click .delete': 'deleteModel'
   };
 
   EventItemView.prototype.initialize = function() {
@@ -4883,11 +4929,19 @@ module.exports = EventItemView = (function(_super) {
 });
 
 ;require.register("views/menu", function(exports, require, module) {
-var MenuView, ViewCollection,
+var ComboBox, Event, MenuView, Tag, ViewCollection, colorhash,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
+colorhash = require('lib/colorhash');
+
 ViewCollection = require('../lib/view_collection');
+
+ComboBox = require('views/widgets/combobox');
+
+Event = require('models/event');
+
+Tag = require('models/tag');
 
 module.exports = MenuView = (function(_super) {
   __extends(MenuView, _super);
@@ -4910,8 +4964,37 @@ module.exports = MenuView = (function(_super) {
 
   MenuView.prototype.events = function() {
     return {
-      'click .calendars': 'toggleDropdown'
+      'click .calendars': 'toggleDropdown',
+      'click .calendar-add': 'onAddCalendar'
     };
+  };
+
+  MenuView.prototype.onAddCalendar = function() {
+    var calendarEvent;
+    this.startSpinner();
+    this.tag = app.tags.getOrCreateByName("new calendar");
+    calendarEvent = new Event({
+      start: moment("19010101", "YYYYMMDD"),
+      end: moment("19010101", "YYYYMMDD"),
+      description: '',
+      place: '',
+      tags: [t("new calendar")]
+    });
+    return calendarEvent.save(null, {
+      wait: true,
+      success: (function(_this) {
+        return function() {
+          return setTimeout(function() {
+            return $('#menuitems li.tagmenuitem:last-of-type .calendar-rename').trigger("click");
+          }, 100);
+        };
+      })(this),
+      complete: (function(_this) {
+        return function() {
+          return setTimeout(_this.stopSpinner.bind(_this), 100);
+        };
+      })(this)
+    });
   };
 
   MenuView.prototype.activate = function(href) {
@@ -4921,6 +5004,14 @@ module.exports = MenuView = (function(_super) {
 
   MenuView.prototype.toggleDropdown = function() {
     return this.$('#menuitems').toggleClass('visible');
+  };
+
+  MenuView.prototype.startSpinner = function() {
+    return this.$('.spinner').show();
+  };
+
+  MenuView.prototype.stopSpinner = function() {
+    return this.$('.spinner').hide();
   };
 
   return MenuView;
@@ -4959,7 +5050,9 @@ module.exports = MenuItemView = (function(_super) {
     'click .calendar-export': 'onExportCalendar',
     'click .dropdown-toggle': 'hideColorPicker',
     'click .calendar-color': 'showColorPicker',
-    'change .color-picker': 'setColor'
+    'change .color-picker': 'setColor',
+    'blur input.calendar-name': 'onRenameValidation',
+    'keyup input.calendar-name': 'onRenameValidation'
   };
 
   MenuItemView.prototype.getRenderData = function() {
@@ -5013,45 +5106,38 @@ module.exports = MenuItemView = (function(_super) {
     return this.$('.dropdown-toggle').on('click', this.hideColorPicker);
   };
 
+  MenuItemView.prototype.onRenameValidation = function(event) {
+    var calendarName, input, key;
+    input = $(event.target);
+    calendarName = this.model.get('name');
+    key = event.keyCode || event.charCode;
+    if (key === 27) {
+      input.remove();
+      this.rawTextElement.insertAfter(this.$('.badge'));
+      this.buildBadge(calendarName);
+      return this.$('.dropdown-toggle').show();
+    } else if (key === 13 || event.type === 'focusout') {
+      this.startSpinner();
+      return app.calendars.rename(calendarName, input.val(), (function(_this) {
+        return function() {
+          return _this.stopSpinner();
+        };
+      })(this));
+    } else {
+      return this.buildBadge(colorhash(input.val()));
+    }
+  };
+
   MenuItemView.prototype.onRenameCalendar = function() {
-    var calendarName, input, rawTextElement, restore, template;
+    var calendarName, input, template;
     calendarName = this.model.get('name');
     template = "<input type=\"text\" class=\"calendar-name\" value=\"" + calendarName + "\"/>";
     input = $(template);
-    rawTextElement = this.$('.calendar-name').detach();
+    this.rawTextElement = this.$('.calendar-name').detach();
     input.insertAfter(this.$('.badge'));
     this.$('.dropdown-toggle').hide();
     input.focus();
-    input[0].setSelectionRange(0, calendarName.length);
-    input.keyup((function(_this) {
-      return function(event) {
-        var key;
-        key = event.keyCode || event.charCode;
-        if (key === 13) {
-          _this.startSpinner();
-          input.off('keyup');
-          return app.calendars.rename(calendarName, input.val(), function() {
-            return _this.stopSpinner();
-          });
-        } else {
-          return _this.buildBadge(colorhash(input.val()));
-        }
-      };
-    })(this));
-    return $(document).keyup(restore = (function(_this) {
-      return function(event) {
-        var key;
-        key = event.keyCode || event.charCode;
-        if (key === 27) {
-          $(document).off('keyup', 'document', restore);
-          input.off('keyup');
-          input.remove();
-          rawTextElement.insertAfter(_this.$('.badge'));
-          _this.buildBadge(calendarName);
-          return _this.$('.dropdown-toggle').show();
-        }
-      };
-    })(this));
+    return input[0].setSelectionRange(0, calendarName.length);
   };
 
   MenuItemView.prototype.onRemoveCalendar = function() {
@@ -5089,11 +5175,11 @@ module.exports = MenuItemView = (function(_super) {
   };
 
   MenuItemView.prototype.startSpinner = function() {
-    return this.$('.spinHolder').spin('tiny', '#000');
+    return this.$('.spinHolder').show();
   };
 
   MenuItemView.prototype.stopSpinner = function() {
-    return this.$('.spinHolder').spin(false);
+    return this.$('.spinHolder').hide();
   };
 
   return MenuItemView;
@@ -5250,7 +5336,7 @@ var locals_ = (locals || {}),calendarMode = locals_.calendarMode,active = locals
 buf.push("<tbody><tr><td class=\"fc-header-left\">");
 if ( calendarMode)
 {
-buf.push("<span class=\"fc-button fc-button-prev fc-corner-left\"><span class=\"fc-text-arrow\">‹</span></span><span class=\"fc-button fc-button-next fc-corner-right\"><span class=\"fc-text-arrow\">›</span></span><span class=\"fc-header-space\"></span><span" + (jade.cls(['fc-button','fc-button-today',active('today')], [null,null,true])) + ">" + (jade.escape(null == (jade_interp = todaytxt) ? "" : jade_interp)) + "</span>");
+buf.push("<span class=\"fc-button fc-button-prev fc-corner-left\"><i class=\"fa fa-angle-left\"></i></span><span class=\"fc-button fc-button-next fc-corner-right\"><i class=\"fa fa-angle-right\"></i></span><span class=\"fc-header-space\"></span><span" + (jade.cls(['fc-button','fc-button-today',active('today')], [null,null,true])) + ">" + (jade.escape(null == (jade_interp = todaytxt) ? "" : jade_interp)) + "</span>");
 }
 buf.push("</td><td class=\"fc-header-center\"><span class=\"fc-header-title\"><h2>" + (jade.escape(null == (jade_interp = title) ? "" : jade_interp)) + "</h2></span></td><td class=\"fc-header-right\"><span" + (jade.cls(['fc-button','fc-button-month',active('month')], [null,null,true])) + ">" + (jade.escape(null == (jade_interp = t('month')) ? "" : jade_interp)) + "</span><span" + (jade.cls(['fc-button','fc-button-week',active('week')], [null,null,true])) + ">" + (jade.escape(null == (jade_interp = t('week')) ? "" : jade_interp)) + "</span><span" + (jade.cls(['fc-button','fc-button-list',active('list')], [null,null,true])) + ">" + (jade.escape(null == (jade_interp = t('list')) ? "" : jade_interp)) + "</span></td></tr></tbody>");;return buf.join("");
 };
@@ -5289,13 +5375,13 @@ var __templateData = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-var locals_ = (locals || {}),id = locals_.id,exportdate = locals_.exportdate,summary = locals_.summary,start = locals_.start,end = locals_.end,allDay = locals_.allDay,place = locals_.place,calendar = locals_.calendar,tags = locals_.tags,description = locals_.description;
+var locals_ = (locals || {}),id = locals_.id,file = locals_.file,summary = locals_.summary,start = locals_.start,end = locals_.end,allDay = locals_.allDay,place = locals_.place,calendar = locals_.calendar,tags = locals_.tags,description = locals_.description;
 buf.push("<div class=\"modal-header\"><span>" + (jade.escape(null == (jade_interp = t('edit event')) ? "" : jade_interp)) + "</span>&nbsp;");
 if ( typeof id != "undefined")
 {
-buf.push("<a" + (jade.attr("href", "events/" + (id) + "/" + (exportdate) + ".ics", true, false)) + "><i class=\"fa fa-download fa-1\"></i></a>");
+buf.push("<a" + (jade.attr("href", "events/" + (id) + "/" + (file) + ".ics", true, false)) + "><i class=\"fa fa-download fa-1\"></i></a>");
 }
-buf.push("<button class=\"close\">&times;</button></div><div class=\"modal-body\"><form id=\"basic\" class=\"form-inline\"><div class=\"row-fluid\"><div class=\"control-group span12\"><label for=\"basic-summary\" class=\"control-label\">" + (jade.escape(null == (jade_interp = t('summary')) ? "" : jade_interp)) + "</label><div class=\"controls\"><input id=\"basic-summary\" type=\"text\"" + (jade.attr("value", summary, true, false)) + " class=\"span12\"/></div></div></div><div class=\"row-fluid\"><div class=\"control-group span4 date\"><label for=\"basic-start\" class=\"control-label\">" + (jade.escape(null == (jade_interp = t('start')) ? "" : jade_interp)) + "</label><br/><input id=\"basic-start\" type=\"datetime-local\"" + (jade.attr("value", start, true, false)) + " class=\"span12\"/></div><div class=\"control-group span4 date\"><label for=\"basic-end\" class=\"control-label\">" + (jade.escape(null == (jade_interp = t('end')) ? "" : jade_interp)) + "</label><br/><input id=\"basic-end\" type=\"datetime-local\"" + (jade.attr("value", end, true, false)) + " class=\"span12\"/></div><div class=\"control-group span4\"><label for=\"allday\" class=\"control-label\">" + (jade.escape(null == (jade_interp = t('All day')) ? "" : jade_interp)) + "</label><br/><input id=\"allday\" type=\"checkbox\" value=\"checked\"" + (jade.attr("checked", allDay, true, false)) + "/></div></div><div class=\"row-fluid\"><div class=\"control-group span12\"><label for=\"basic-place\" class=\"control-label\">" + (jade.escape(null == (jade_interp = t('Place')) ? "" : jade_interp)) + "</label><div class=\"controls\"><input id=\"basic-place\" type=\"text\"" + (jade.attr("value", place, true, false)) + " class=\"span12\"/></div></div></div><div class=\"row-fluid\"><div class=\"control-group span12\"><label for=\"basic-calendar\" class=\"control-label\">" + (jade.escape(null == (jade_interp = t('calendar')) ? "" : jade_interp)) + "</label><div class=\"surrounded-combobox controls\"><input id=\"basic-calendar\"" + (jade.attr("value", calendar, true, false)) + "/></div></div><div style=\"display:none;\" class=\"control-group span8\"><label for=\"basic-tags\" class=\"control-label\">" + (jade.escape(null == (jade_interp = t('tags')) ? "" : jade_interp)) + "</label><div class=\"controls\"><input id=\"basic-tags\"" + (jade.attr("value", tags.join(','), true, false)) + " class=\"span12 tagit\"/></div></div></div><div class=\"row-fluid\"><div class=\"control-group span12\"><label for=\"basic-description\" class=\"control-label\">" + (jade.escape(null == (jade_interp = t('description')) ? "" : jade_interp)) + "</label><div class=\"controls\"><textarea id=\"basic-description\" class=\"span12\">" + (jade.escape(null == (jade_interp = description) ? "" : jade_interp)) + "</textarea></div></div></div></form><div id=\"guests-block\"><h4>" + (jade.escape(null == (jade_interp = t('guests')) ? "" : jade_interp)) + "</h4><form id=\"guests\" class=\"form-inline\"><div class=\"control-group\"><div class=\"controls\"><input id=\"addguest-field\" type=\"text\"" + (jade.attr("placeholder", t('enter email'), true, false)) + "/><a id=\"addguest\" class=\"btn\">" + (jade.escape(null == (jade_interp = t('invite')) ? "" : jade_interp)) + "</a></div></div></form><div id=\"guests-list\"></div><h4>" + (jade.escape(null == (jade_interp = t('reminder')) ? "" : jade_interp)) + "&nbsp;<a class=\"btn addreminder\">+</a></h4><label id=\"reminder-explanation\" class=\"control-label hide\">" + (jade.escape(null == (jade_interp = t('Reminders before the event')) ? "" : jade_interp)) + "</label><div id=\"reminder-container\"></div><h4>" + (jade.escape(null == (jade_interp = t('recurrence')) ? "" : jade_interp)) + "</h4><div id=\"rrule-container\"></div></div></div><div class=\"modal-footer\"><a id=\"cancel-btn\">" + (jade.escape(null == (jade_interp = t("cancel")) ? "" : jade_interp)) + "</a>&nbsp;<a id=\"confirm-btn\" class=\"btn\">" + (jade.escape(null == (jade_interp = t("save changes")) ? "" : jade_interp)) + "</a></div>");;return buf.join("");
+buf.push("<button class=\"close\">&times;</button></div><div class=\"modal-body\"><form id=\"basic\" class=\"form-inline\"><div class=\"row-fluid\"><div class=\"control-group span12\"><label for=\"basic-summary\" class=\"control-label\">" + (jade.escape(null == (jade_interp = t('summary')) ? "" : jade_interp)) + "</label><div class=\"controls\"><input id=\"basic-summary\" type=\"text\"" + (jade.attr("value", summary, true, false)) + " class=\"span12\"/></div></div></div><div class=\"row-fluid\"><div class=\"control-group span4 date\"><label for=\"basic-start\" class=\"control-label\">" + (jade.escape(null == (jade_interp = t('start')) ? "" : jade_interp)) + "</label><br/><input id=\"basic-start\" type=\"datetime-local\"" + (jade.attr("value", start, true, false)) + " class=\"span12\"/></div><div class=\"control-group span4 date\"><label for=\"basic-end\" class=\"control-label\">" + (jade.escape(null == (jade_interp = t('end')) ? "" : jade_interp)) + "</label><br/><input id=\"basic-end\" type=\"datetime-local\"" + (jade.attr("value", end, true, false)) + " class=\"span12\"/></div><div class=\"control-group span4\"><label for=\"allday\" class=\"control-label\">" + (jade.escape(null == (jade_interp = t('All day')) ? "" : jade_interp)) + "</label><br/><input id=\"allday\" type=\"checkbox\" value=\"checked\"" + (jade.attr("checked", allDay, true, false)) + "/></div></div><div class=\"row-fluid\"><div class=\"control-group span12\"><label for=\"basic-place\" class=\"control-label\">" + (jade.escape(null == (jade_interp = t('Place')) ? "" : jade_interp)) + "</label><div class=\"controls\"><input id=\"basic-place\" type=\"text\"" + (jade.attr("value", place, true, false)) + " class=\"span12\"/></div></div></div><div class=\"row-fluid\"><div class=\"control-group span12\"><label for=\"basic-calendar\" class=\"control-label\">" + (jade.escape(null == (jade_interp = t('calendar')) ? "" : jade_interp)) + "</label><div class=\"surrounded-combobox controls\"><input id=\"basic-calendar\"" + (jade.attr("value", calendar, true, false)) + "/></div></div><div style=\"display:none;\" class=\"control-group span8\"><label for=\"basic-tags\" class=\"control-label\">" + (jade.escape(null == (jade_interp = t('tags')) ? "" : jade_interp)) + "</label><div class=\"controls\"><input id=\"basic-tags\"" + (jade.attr("value", tags.join(','), true, false)) + " class=\"span12 tagit\"/></div></div></div><div class=\"row-fluid\"><div class=\"control-group span12\"><label for=\"basic-description\" class=\"control-label\">" + (jade.escape(null == (jade_interp = t('description')) ? "" : jade_interp)) + "</label><div class=\"controls\"><textarea id=\"basic-description\" class=\"span12\">" + (jade.escape(null == (jade_interp = description) ? "" : jade_interp)) + "</textarea></div></div></div></form><div id=\"guests-block\"><h4>" + (jade.escape(null == (jade_interp = t('guests')) ? "" : jade_interp)) + "</h4><form id=\"guests\" class=\"form-inline\"><div class=\"control-group\"><div class=\"controls\"><input id=\"addguest-field\" type=\"text\"" + (jade.attr("placeholder", t('enter email'), true, false)) + "/><a id=\"addguest\" class=\"btn\">" + (jade.escape(null == (jade_interp = t('invite')) ? "" : jade_interp)) + "</a></div></div></form><div id=\"guests-list\"></div><h4>" + (jade.escape(null == (jade_interp = t('reminder')) ? "" : jade_interp)) + "&nbsp;<a class=\"btn addreminder fa fa-plus\"></a></h4><label id=\"reminder-explanation\" class=\"control-label hide\">" + (jade.escape(null == (jade_interp = t('Reminders before the event')) ? "" : jade_interp)) + "</label><div id=\"reminder-container\"></div><h4>" + (jade.escape(null == (jade_interp = t('recurrence')) ? "" : jade_interp)) + "</h4><div id=\"rrule-container\"></div></div></div><div class=\"modal-footer\"><a id=\"cancel-btn\">" + (jade.escape(null == (jade_interp = t("cancel")) ? "" : jade_interp)) + "</a>&nbsp;<a id=\"confirm-btn\" class=\"btn\">" + (jade.escape(null == (jade_interp = t("save changes")) ? "" : jade_interp)) + "</a></div>");;return buf.join("");
 };
 if (typeof define === 'function' && define.amd) {
   define([], function() {
@@ -5317,17 +5403,17 @@ var locals_ = (locals || {}),model = locals_.model;
 buf.push("<p>");
 if ( model.status == 'ACCEPTED')
 {
-buf.push("<i class=\"icon-ok-circle green\"></i>");
+buf.push("<i class=\"fa fa-check-circle-o green\"></i>");
 }
 else if ( model.status == 'DECLINED')
 {
-buf.push("<i class=\"icon-ban-circle red\"></i>");
+buf.push("<i class=\"fa fa-times-circle-o red\"></i>");
 }
 else if ( model.status == 'NEED-ACTION')
 {
-buf.push("<i class=\"icon-time blue\"></i>");
+buf.push("<i class=\"fa fa-exclamation-circle blue\"></i>");
 }
-buf.push("&nbsp;" + (jade.escape((jade_interp = model.email) == null ? '' : jade_interp)) + "<a" + (jade.attr("title", "" + (t('cancel Invitation')) + "", true, false)) + " class=\"remove-guest\"><i class=\"icon-trash\"></i></a></p>");;return buf.join("");
+buf.push(" " + (jade.escape((jade_interp = model.email) == null ? '' : jade_interp)) + " <a" + (jade.attr("title", "" + (t('cancel Invitation')) + "", true, false)) + " class=\"remove-guest fa fa-trash\"></a></p>");;return buf.join("");
 };
 if (typeof define === 'function' && define.amd) {
   define([], function() {
@@ -5346,7 +5432,7 @@ var buf = [];
 var jade_mixins = {};
 var jade_interp;
 var locals_ = (locals || {}),durationValue = locals_.durationValue,isSelectedUnit = locals_.isSelectedUnit;
-buf.push("<form class=\"form-inline\"><div class=\"control-group\"><input type=\"number\" min=\"1\"" + (jade.attr("value", durationValue, true, false)) + " class=\"input-mini triggervalue\"/><select class=\"triggerunit\"><option value=\"M\"" + (jade.attr("selected", isSelectedUnit('M'), true, false)) + ">" + (jade.escape(null == (jade_interp = t('minute')) ? "" : jade_interp)) + "</option><option value=\"H\"" + (jade.attr("selected", isSelectedUnit('H'), true, false)) + ">" + (jade.escape(null == (jade_interp = t('hour')) ? "" : jade_interp)) + "</option><option value=\"D\"" + (jade.attr("selected", isSelectedUnit('D'), true, false)) + ">" + (jade.escape(null == (jade_interp = t('day')) ? "" : jade_interp)) + "</option><option value=\"W\"" + (jade.attr("selected", isSelectedUnit('W'), true, false)) + ">" + (jade.escape(null == (jade_interp = t('week')) ? "" : jade_interp)) + "</option></select><i" + (jade.attr("title", t('delete'), true, false)) + " class=\"removereminder icon-trash\"></i></div></form>");;return buf.join("");
+buf.push("<form class=\"form-inline\"><div class=\"control-group\"><input type=\"number\" min=\"1\"" + (jade.attr("value", durationValue, true, false)) + " class=\"input-mini triggervalue\"/><select class=\"triggerunit\"><option value=\"M\"" + (jade.attr("selected", isSelectedUnit('M'), true, false)) + ">" + (jade.escape(null == (jade_interp = t('minute')) ? "" : jade_interp)) + "</option><option value=\"H\"" + (jade.attr("selected", isSelectedUnit('H'), true, false)) + ">" + (jade.escape(null == (jade_interp = t('hour')) ? "" : jade_interp)) + "</option><option value=\"D\"" + (jade.attr("selected", isSelectedUnit('D'), true, false)) + ">" + (jade.escape(null == (jade_interp = t('day')) ? "" : jade_interp)) + "</option><option value=\"W\"" + (jade.attr("selected", isSelectedUnit('W'), true, false)) + ">" + (jade.escape(null == (jade_interp = t('week')) ? "" : jade_interp)) + "</option></select><i" + (jade.attr("title", t('delete'), true, false)) + " class=\"removereminder fa fa-trash\"></i></div></form>");;return buf.join("");
 };
 if (typeof define === 'function' && define.amd) {
   define([], function() {
@@ -5365,7 +5451,7 @@ var buf = [];
 var jade_mixins = {};
 var jade_interp;
 var locals_ = (locals || {}),rrule = locals_.rrule,freqSelected = locals_.freqSelected,weekDays = locals_.weekDays,wkdaySelected = locals_.wkdaySelected,yearModeIs = locals_.yearModeIs,endModeSelected = locals_.endModeSelected;
-buf.push("<p id=\"rrule-short\"><i class=\"icon-arrow-right\"></i><span id=\"rrule-help\"></span><span id=\"rrule-action\">&nbsp;-&nbsp;<a class=\"rrule-show\">" + (jade.escape(null == (jade_interp = t('Edit')) ? "" : jade_interp)) + "</a></span></p><form id=\"rrule\" class=\"form-inline\"><label for=\"rrule-interval\" class=\"control-label\">" + (jade.escape(null == (jade_interp = t('repeat every')) ? "" : jade_interp)) + "</label><div class=\"control-group\"><input id=\"rrule-interval\" type=\"number\" min=\"1\"" + (jade.attr("value", rrule.interval, true, false)) + " class=\"col-xs2 input-mini\"/><select id=\"rrule-freq\"><option value=\"NOREPEAT\"" + (jade.attr("selected", freqSelected('NOREPEAT'), true, false)) + ">" + (jade.escape(null == (jade_interp = t('no recurrence')) ? "" : jade_interp)) + "</option><option" + (jade.attr("value", RRule.DAILY, true, false)) + (jade.attr("selected", freqSelected(RRule.DAILY), true, false)) + ">" + (jade.escape(null == (jade_interp = t('day')) ? "" : jade_interp)) + "</option><option" + (jade.attr("value", RRule.WEEKLY, true, false)) + (jade.attr("selected", freqSelected(RRule.WEEKLY), true, false)) + ">" + (jade.escape(null == (jade_interp = t('week')) ? "" : jade_interp)) + "</option><option" + (jade.attr("value", RRule.MONTHLY, true, false)) + (jade.attr("selected", freqSelected(RRule.MONTHLY), true, false)) + ">" + (jade.escape(null == (jade_interp = t('month')) ? "" : jade_interp)) + "</option><option" + (jade.attr("value", RRule.YEARLY, true, false)) + (jade.attr("selected", freqSelected(RRule.YEARLY), true, false)) + ">" + (jade.escape(null == (jade_interp = t('year')) ? "" : jade_interp)) + "</option></select></div><div id=\"rrule-weekdays\"><label class=\"control-label\">" + (jade.escape(null == (jade_interp = t('repeat on')) ? "" : jade_interp)) + "</label><div class=\"control-group\"><label class=\"checkbox inline\">" + (jade.escape(null == (jade_interp = weekDays[1]) ? "" : jade_interp)) + "<input type=\"checkbox\" value=\"1\"" + (jade.attr("checked", wkdaySelected(1), true, false)) + "/></label><label class=\"checkbox inline\">" + (jade.escape(null == (jade_interp = weekDays[2]) ? "" : jade_interp)) + "<input type=\"checkbox\" value=\"2\"" + (jade.attr("checked", wkdaySelected(2), true, false)) + "/></label><label class=\"checkbox inline\">" + (jade.escape(null == (jade_interp = weekDays[3]) ? "" : jade_interp)) + "<input type=\"checkbox\" value=\"3\"" + (jade.attr("checked", wkdaySelected(3), true, false)) + "/></label><label class=\"checkbox inline\">" + (jade.escape(null == (jade_interp = weekDays[4]) ? "" : jade_interp)) + "<input type=\"checkbox\" value=\"4\"" + (jade.attr("checked", wkdaySelected(4), true, false)) + "/></label><label class=\"checkbox inline\">" + (jade.escape(null == (jade_interp = weekDays[5]) ? "" : jade_interp)) + "<input type=\"checkbox\" value=\"5\"" + (jade.attr("checked", wkdaySelected(5), true, false)) + "/></label><label class=\"checkbox inline\">" + (jade.escape(null == (jade_interp = weekDays[6]) ? "" : jade_interp)) + "<input type=\"checkbox\" value=\"6\"" + (jade.attr("checked", wkdaySelected(6), true, false)) + "/></label><label class=\"checkbox inline\">" + (jade.escape(null == (jade_interp = weekDays[0]) ? "" : jade_interp)) + "<input type=\"checkbox\" value=\"0\"" + (jade.attr("checked", wkdaySelected(0), true, false)) + "/></label></div></div><div id=\"rrule-monthdays\" class=\"control-group\"><div class=\"controls\"><label class=\"checkbox inline\"><input type=\"radio\"" + (jade.attr("checked", yearModeIs('date'), true, false)) + " name=\"rrule-month-option\" value=\"date\"/>" + (jade.escape(null == (jade_interp = t('repeat on date')) ? "" : jade_interp)) + "</label><label class=\"checkbox inline\"><input type=\"radio\"" + (jade.attr("checked", yearModeIs('weekdate'), true, false)) + " name=\"rrule-month-option\" value=\"weekdate\"/>" + (jade.escape(null == (jade_interp = t('repeat on weekday')) ? "" : jade_interp)) + "</label></div></div><div id=\"rrule-repeat\"><label for=\"rrule-until\">" + (jade.escape(null == (jade_interp = t('repeat')) ? "" : jade_interp)) + "</label><div class=\"control-group\"><label class=\"radio\"><input type=\"radio\" name=\"endMode\" value=\"forever\"" + (jade.attr("checked", endModeSelected('forever'), true, false)) + "/>" + (jade.escape(null == (jade_interp = t('forever')) ? "" : jade_interp)) + "</label></div><div class=\"control-group\"><label class=\"radio\"><input type=\"radio\" name=\"endMode\" value=\"count\"" + (jade.attr("checked", endModeSelected('count'), true, false)) + "/><label for=\"count\">" + (jade.escape(null == (jade_interp = t('after')) ? "" : jade_interp)) + "</label></label><input id=\"rrule-count\" type=\"number\" min=\"0\"" + (jade.attr("value", rrule.count, true, false)) + " class=\"input-mini\"/><label for=\"rrule-count\">" + (jade.escape(null == (jade_interp = t('occurences')) ? "" : jade_interp)) + "</label></div><div class=\"control-group\"><label class=\"radio\"><input type=\"radio\" name=\"endMode\" value=\"until\"" + (jade.attr("checked", endModeSelected('until'), true, false)) + "/><label for=\"until\">" + (jade.escape(null == (jade_interp = t('until')) ? "" : jade_interp)) + "</label></label><input id=\"rrule-until\" type=\"date\"" + (jade.attr("value", rrule.until, true, false)) + "/></div></div></form>");;return buf.join("");
+buf.push("<p id=\"rrule-short\"><span id=\"rrule-help\"></span><span id=\"rrule-action\">&nbsp;-&nbsp;<a class=\"rrule-show\">" + (jade.escape(null == (jade_interp = t('Edit')) ? "" : jade_interp)) + "</a></span></p><form id=\"rrule\" class=\"form-inline\"><label for=\"rrule-interval\" class=\"control-label\">" + (jade.escape(null == (jade_interp = t('repeat every')) ? "" : jade_interp)) + "</label><div class=\"control-group\"><input id=\"rrule-interval\" type=\"number\" min=\"1\"" + (jade.attr("value", rrule.interval, true, false)) + " class=\"col-xs2 input-mini\"/><select id=\"rrule-freq\"><option value=\"NOREPEAT\"" + (jade.attr("selected", freqSelected('NOREPEAT'), true, false)) + ">" + (jade.escape(null == (jade_interp = t('no recurrence')) ? "" : jade_interp)) + "</option><option" + (jade.attr("value", RRule.DAILY, true, false)) + (jade.attr("selected", freqSelected(RRule.DAILY), true, false)) + ">" + (jade.escape(null == (jade_interp = t('day')) ? "" : jade_interp)) + "</option><option" + (jade.attr("value", RRule.WEEKLY, true, false)) + (jade.attr("selected", freqSelected(RRule.WEEKLY), true, false)) + ">" + (jade.escape(null == (jade_interp = t('week')) ? "" : jade_interp)) + "</option><option" + (jade.attr("value", RRule.MONTHLY, true, false)) + (jade.attr("selected", freqSelected(RRule.MONTHLY), true, false)) + ">" + (jade.escape(null == (jade_interp = t('month')) ? "" : jade_interp)) + "</option><option" + (jade.attr("value", RRule.YEARLY, true, false)) + (jade.attr("selected", freqSelected(RRule.YEARLY), true, false)) + ">" + (jade.escape(null == (jade_interp = t('year')) ? "" : jade_interp)) + "</option></select></div><div id=\"rrule-weekdays\"><label class=\"control-label\">" + (jade.escape(null == (jade_interp = t('repeat on')) ? "" : jade_interp)) + "</label><div class=\"control-group\"><label class=\"checkbox inline\">" + (jade.escape(null == (jade_interp = weekDays[1]) ? "" : jade_interp)) + "<input type=\"checkbox\" value=\"1\"" + (jade.attr("checked", wkdaySelected(1), true, false)) + "/></label><label class=\"checkbox inline\">" + (jade.escape(null == (jade_interp = weekDays[2]) ? "" : jade_interp)) + "<input type=\"checkbox\" value=\"2\"" + (jade.attr("checked", wkdaySelected(2), true, false)) + "/></label><label class=\"checkbox inline\">" + (jade.escape(null == (jade_interp = weekDays[3]) ? "" : jade_interp)) + "<input type=\"checkbox\" value=\"3\"" + (jade.attr("checked", wkdaySelected(3), true, false)) + "/></label><label class=\"checkbox inline\">" + (jade.escape(null == (jade_interp = weekDays[4]) ? "" : jade_interp)) + "<input type=\"checkbox\" value=\"4\"" + (jade.attr("checked", wkdaySelected(4), true, false)) + "/></label><label class=\"checkbox inline\">" + (jade.escape(null == (jade_interp = weekDays[5]) ? "" : jade_interp)) + "<input type=\"checkbox\" value=\"5\"" + (jade.attr("checked", wkdaySelected(5), true, false)) + "/></label><label class=\"checkbox inline\">" + (jade.escape(null == (jade_interp = weekDays[6]) ? "" : jade_interp)) + "<input type=\"checkbox\" value=\"6\"" + (jade.attr("checked", wkdaySelected(6), true, false)) + "/></label><label class=\"checkbox inline\">" + (jade.escape(null == (jade_interp = weekDays[0]) ? "" : jade_interp)) + "<input type=\"checkbox\" value=\"0\"" + (jade.attr("checked", wkdaySelected(0), true, false)) + "/></label></div></div><div id=\"rrule-monthdays\" class=\"control-group\"><div class=\"controls\"><label class=\"checkbox inline\"><input type=\"radio\"" + (jade.attr("checked", yearModeIs('date'), true, false)) + " name=\"rrule-month-option\" value=\"date\"/>" + (jade.escape(null == (jade_interp = t('repeat on date')) ? "" : jade_interp)) + "</label><label class=\"checkbox inline\"><input type=\"radio\"" + (jade.attr("checked", yearModeIs('weekdate'), true, false)) + " name=\"rrule-month-option\" value=\"weekdate\"/>" + (jade.escape(null == (jade_interp = t('repeat on weekday')) ? "" : jade_interp)) + "</label></div></div><div id=\"rrule-repeat\"><label for=\"rrule-until\">" + (jade.escape(null == (jade_interp = t('repeat')) ? "" : jade_interp)) + "</label><div class=\"control-group\"><label class=\"radio\"><input type=\"radio\" name=\"endMode\" value=\"forever\"" + (jade.attr("checked", endModeSelected('forever'), true, false)) + "/>" + (jade.escape(null == (jade_interp = t('forever')) ? "" : jade_interp)) + "</label></div><div class=\"control-group\"><label class=\"radio\"><input type=\"radio\" name=\"endMode\" value=\"count\"" + (jade.attr("checked", endModeSelected('count'), true, false)) + "/><label for=\"count\">" + (jade.escape(null == (jade_interp = t('after')) ? "" : jade_interp)) + "</label></label><input id=\"rrule-count\" type=\"number\" min=\"0\"" + (jade.attr("value", rrule.count, true, false)) + " class=\"input-mini\"/><label for=\"rrule-count\">" + (jade.escape(null == (jade_interp = t('occurences')) ? "" : jade_interp)) + "</label></div><div class=\"control-group\"><label class=\"radio\"><input type=\"radio\" name=\"endMode\" value=\"until\"" + (jade.attr("checked", endModeSelected('until'), true, false)) + "/><label for=\"until\">" + (jade.escape(null == (jade_interp = t('until')) ? "" : jade_interp)) + "</label></label><input id=\"rrule-until\" type=\"date\"" + (jade.attr("value", rrule.until, true, false)) + "/></div></div></form>");;return buf.join("");
 };
 if (typeof define === 'function' && define.amd) {
   define([], function() {
@@ -5465,7 +5551,7 @@ if ( !allDay)
 {
 buf.push("" + (jade.escape((jade_interp = start) == null ? '' : jade_interp)) + " - " + (jade.escape((jade_interp = end) == null ? '' : jade_interp)) + "");
 }
-buf.push("&nbsp;" + (jade.escape((jade_interp = description || t("no description")) == null ? '' : jade_interp)) + "<i class=\"icon-trash\"></i></p>");;return buf.join("");
+buf.push("&nbsp;" + (jade.escape((jade_interp = description || t("no description")) == null ? '' : jade_interp)) + "<i class=\"delete fa fa-trash\"></i></p>");;return buf.join("");
 };
 if (typeof define === 'function' && define.amd) {
   define([], function() {
@@ -5484,7 +5570,7 @@ var buf = [];
 var jade_mixins = {};
 var jade_interp;
 
-buf.push("<li><a href=\"#sync\"><i class=\"fa fa-refresh\"></i><span>" + (jade.escape(null == (jade_interp = t('Sync')) ? "" : jade_interp)) + "</span></a></li><li class=\"calendars\"><a href=\"#calendar\"><i class=\"fa fa-calendar\"></i><span>" + (jade.escape(null == (jade_interp = t('Calendar')) ? "" : jade_interp)) + "</span></a></li><ul id=\"menuitems\"></ul>");;return buf.join("");
+buf.push("<li><a href=\"#sync\"><i class=\"fa fa-refresh\"></i><span>" + (jade.escape(null == (jade_interp = t('Sync')) ? "" : jade_interp)) + "</span></a></li><li class=\"calendars\"><a href=\"#calendar\"><i class=\"fa fa-calendar\"></i><span>" + (jade.escape(null == (jade_interp = t('Calendar')) ? "" : jade_interp)) + "</span><span class=\"fa fa-plus calendar-add\"></span><img src=\"img/spinner.svg\" class=\"spinner\"/></a></li><ul id=\"menuitems\"></ul>");;return buf.join("");
 };
 if (typeof define === 'function' && define.amd) {
   define([], function() {
@@ -5505,26 +5591,7 @@ var jade_interp;
 var locals_ = (locals || {}),back = locals_.back,visible = locals_.visible,color = locals_.color,border = locals_.border,label = locals_.label;
 back = visible?color:"transparent"
 border = visible?"transparent":color
-buf.push("<span class=\"badge\">&nbsp;<span class=\"spinHolder\">&nbsp;</span></span><span class=\"calendar-name\">" + (jade.escape(null == (jade_interp = label) ? "" : jade_interp)) + "</span><div class=\"dropdown\"><a id=\"dLabel\" data-toggle=\"dropdown\" class=\"dropdown-toggle\"><span class=\"caret\"></span></a><ul aria-labelledBy=\"dLabel\" class=\"dropdown-menu\"><li><a class=\"calendar-color\">" + (jade.escape(null == (jade_interp = t('change color')) ? "" : jade_interp)) + "</a><div style=\"display: none;\" class=\"color-picker\"><div style=\"display: block;\" class=\"track\"></div></div></li><li><a class=\"calendar-rename\">" + (jade.escape(null == (jade_interp = t('rename')) ? "" : jade_interp)) + "</a></li><li><a class=\"calendar-remove\">" + (jade.escape(null == (jade_interp = t('delete')) ? "" : jade_interp)) + "</a></li><li><a class=\"calendar-export\">" + (jade.escape(null == (jade_interp = t('export')) ? "" : jade_interp)) + "</a></li></ul></div>");;return buf.join("");
-};
-if (typeof define === 'function' && define.amd) {
-  define([], function() {
-    return __templateData;
-  });
-} else if (typeof module === 'object' && module && module.exports) {
-  module.exports = __templateData;
-} else {
-  __templateData;
-}
-});
-
-;require.register("views/templates/popover_content", function(exports, require, module) {
-var __templateData = function template(locals) {
-var buf = [];
-var jade_mixins = {};
-var jade_interp;
-var locals_ = (locals || {}),start = locals_.start,end = locals_.end,diff = locals_.diff,description = locals_.description,place = locals_.place,advancedUrl = locals_.advancedUrl,editionMode = locals_.editionMode;
-buf.push("<div class=\"line\"><span class=\"timeseparator\">" + (jade.escape(null == (jade_interp = t("from")) ? "" : jade_interp)) + "</span><input id=\"input-start\" type=\"time\"" + (jade.attr("value", start, true, false)) + (jade.attr("placeholder", t("From hours:minutes"), true, false)) + " class=\"focused input-mini\"/><span>&nbsp;</span><span class=\"timeseparator\">" + (jade.escape(null == (jade_interp = t("to")) ? "" : jade_interp)) + "</span><input id=\"input-end\" type=\"time\"" + (jade.attr("value", end, true, false)) + (jade.attr("placeholder", t("To hours:minutes+days"), true, false)) + " class=\"input-mini\"/><span>&nbsp;</span><input id=\"input-diff\" type=\"number\"" + (jade.attr("value", diff, true, false)) + " placeholder=\"0\" min=\"0\" class=\"col-xs2 input-mini\"/><span>&nbsp;</span><span class=\"timeseparator\">" + (jade.escape(null == (jade_interp = ' ' + t('days later')) ? "" : jade_interp)) + "</span></div><div class=\"line\"><input id=\"input-desc\" type=\"text\"" + (jade.attr("value", description, true, false)) + (jade.attr("placeholder", t("summary"), true, false)) + " class=\"input\"/><input id=\"input-place\" type=\"text\"" + (jade.attr("value", place, true, false)) + (jade.attr("placeholder", t("Place"), true, false)) + " class=\"input-small\"/><a id=\"showmap\" target=\"_blank\" class=\"btn\"><i class=\"icon-white icon-map-marker\"></i></a></div><div class=\"popover-footer line\"><a" + (jade.attr("href", '#'+advancedUrl, true, false)) + " class=\"advanced-link\">" + (jade.escape(null == (jade_interp = t('advanced')) ? "" : jade_interp)) + "</a><span>&nbsp;</span><a class=\"btn add\">" + (jade.escape(null == (jade_interp = editionMode ? t('Edit') : t('Create')) ? "" : jade_interp)) + "</a></div>");;return buf.join("");
+buf.push("<span class=\"badge\">&nbsp;<img src=\"img/spinner.svg\" class=\"spinHolder\"/></span><span class=\"calendar-name\">" + (jade.escape(null == (jade_interp = label) ? "" : jade_interp)) + "</span><div class=\"dropdown\"><a id=\"dLabel\" data-toggle=\"dropdown\" class=\"dropdown-toggle\"><span class=\"caret\"></span></a><ul aria-labelledBy=\"dLabel\" class=\"dropdown-menu\"><li><a class=\"calendar-color\">" + (jade.escape(null == (jade_interp = t('change color')) ? "" : jade_interp)) + "</a><div style=\"display: none;\" class=\"color-picker\"><div style=\"display: block;\" class=\"track\"></div></div></li><li><a class=\"calendar-rename\">" + (jade.escape(null == (jade_interp = t('rename')) ? "" : jade_interp)) + "</a></li><li><a class=\"calendar-remove\">" + (jade.escape(null == (jade_interp = t('delete')) ? "" : jade_interp)) + "</a></li><li><a class=\"calendar-export\">" + (jade.escape(null == (jade_interp = t('export')) ? "" : jade_interp)) + "</a></li></ul></div>");;return buf.join("");
 };
 if (typeof define === 'function' && define.amd) {
   define([], function() {
@@ -5545,7 +5612,7 @@ var jade_interp;
 var locals_ = (locals || {}),popoverClassName = locals_.popoverClassName,allDay = locals_.allDay,sameDay = locals_.sameDay,start = locals_.start,tFormat = locals_.tFormat,end = locals_.end,dFormat = locals_.dFormat,advancedUrl = locals_.advancedUrl,editionMode = locals_.editionMode;
 popoverClassName  = (allDay ? ' is-all-day' : '')
 popoverClassName += (sameDay? ' is-same-day' : '')
-buf.push("<div" + (jade.cls(['popover-content-wrapper',popoverClassName], [null,true])) + "><label" + (jade.attr("aria-hidden", "" + (allDay) + "", true, false)) + " class=\"timed\"><span class=\"caption\">" + (jade.escape(null == (jade_interp = t("From")) ? "" : jade_interp)) + "</span><input tabindex=\"4\" type=\"time\" size=\"5\"" + (jade.attr("placeholder", t("From [hours:minutes]"), true, false)) + (jade.attr("value", start.format(tFormat), true, false)) + " class=\"input-start input-time\"/></label><label class=\"aside\"><input tabindex=\"3\" type=\"checkbox\" value=\"checked\"" + (jade.attr("checked", allDay, true, false)) + " class=\"input-allday\"/><span class=\"caption\">" + (jade.escape(null == (jade_interp = t('All day')) ? "" : jade_interp)) + "</span></label><label" + (jade.attr("aria-hidden", "" + (allDay) + "", true, false)) + " class=\"timed\"><span class=\"input-end-caption caption\">" + (jade.escape(null == (jade_interp = t("To")) ? "" : jade_interp)) + "</span><input tabindex=\"5\" type=\"time\" size=\"5\"" + (jade.attr("placeholder", t("To [hours:minutes]"), true, false)) + (jade.attr("value", end.format(tFormat), true, false)) + " class=\"input-end-time input-time\"/></label><label class=\"end-date\"><span class=\"caption\">" + (jade.escape(null == (jade_interp = allDay? t(sameDay? "All one day" : "All day, until") : "-") ? "" : jade_interp)) + "&nbsp;</span><input tabindex=\"6\" type=\"date\" size=\"10\"" + (jade.attr("placeholder", t("To [date]"), true, false)) + (jade.attr("value", end.format(dFormat), true, false)) + " class=\"input-end-date input-date\"/></label></div><div class=\"popover-footer\"><a role=\"button\" tabindex=\"8\"" + (jade.attr("href", '#'+advancedUrl, true, false)) + " data-tabindex-next=\"1\" class=\"advanced-link\">" + (jade.escape(null == (jade_interp = t('advanced')) ? "" : jade_interp)) + "</a><a role=\"button\" tabindex=\"7\" class=\"btn add\">" + (jade.escape(null == (jade_interp = editionMode ? t('save changes') : t('Create')) ? "" : jade_interp)) + "</a></div>");;return buf.join("");
+buf.push("<div" + (jade.cls(['popover-content-wrapper',popoverClassName], [null,true])) + "><label" + (jade.attr("aria-hidden", "" + (allDay) + "", true, false)) + " class=\"timed\"><span class=\"caption\">" + (jade.escape(null == (jade_interp = t("From")) ? "" : jade_interp)) + "</span><input tabindex=\"4\" type=\"time\" size=\"5\"" + (jade.attr("placeholder", t("From [hours:minutes]"), true, false)) + (jade.attr("value", start.format(tFormat), true, false)) + " class=\"input-start input-time\"/></label><label class=\"aside\"><input tabindex=\"3\" type=\"checkbox\" value=\"checked\"" + (jade.attr("checked", allDay, true, false)) + " class=\"input-allday\"/><span class=\"caption\">" + (jade.escape(null == (jade_interp = t('All day')) ? "" : jade_interp)) + "</span></label><label" + (jade.attr("aria-hidden", "" + (allDay) + "", true, false)) + " class=\"timed\"><span class=\"input-end-caption caption\">" + (jade.escape(null == (jade_interp = t("To")) ? "" : jade_interp)) + "</span><input tabindex=\"5\" type=\"time\" size=\"5\"" + (jade.attr("placeholder", t("To [hours:minutes]"), true, false)) + (jade.attr("value", end.format(tFormat), true, false)) + " class=\"input-end-time input-time\"/></label><label class=\"end-date\"><span class=\"caption\">" + (jade.escape(null == (jade_interp = allDay? t(sameDay? "All one day" : "All day, until") : "-") ? "" : jade_interp)) + "&nbsp;</span><input tabindex=\"6\" type=\"date\" size=\"10\"" + (jade.attr("placeholder", t("To [date]"), true, false)) + (jade.attr("value", end.format(dFormat), true, false)) + " class=\"input-end-date input-date\"/></label></div><div class=\"popover-footer\"><a role=\"button\" tabindex=\"8\"" + (jade.attr("href", '#' + advancedUrl, true, false)) + " data-tabindex-next=\"1\" class=\"advanced-link\">" + (jade.escape(null == (jade_interp = t('advanced')) ? "" : jade_interp)) + "</a><a role=\"button\" tabindex=\"7\" class=\"btn add\">" + (jade.escape(null == (jade_interp = editionMode ? t('save changes') : t('Create')) ? "" : jade_interp)) + "</a></div>");;return buf.join("");
 };
 if (typeof define === 'function' && define.amd) {
   define([], function() {
@@ -5564,7 +5631,7 @@ var buf = [];
 var jade_mixins = {};
 var jade_interp;
 var locals_ = (locals || {}),calendar = locals_.calendar,description = locals_.description,place = locals_.place;
-buf.push("<span class=\"calendar\"><input" + (jade.attr("value", calendar, true, false)) + " class=\"calendarcombo\"/></span><span class=\"label\"><input tabindex=\"1\" type=\"text\"" + (jade.attr("value", description, true, false)) + (jade.attr("placeholder", t("summary"), true, false)) + " data-tabindex-prev=\"8\" class=\"input-desc\"/></span><span class=\"label\"><input tabindex=\"2\" type=\"text\"" + (jade.attr("value", place, true, false)) + (jade.attr("placeholder", t("Place"), true, false)) + " class=\"input-place\"/></span><span class=\"controls\"><button" + (jade.attr("title", t('close'), true, false)) + " role=\"button\" class=\"close\">&times;</button><i" + (jade.attr("title", t('delete'), true, false)) + " role=\"button\" class=\"remove icon-trash\"></i></span>");;return buf.join("");
+buf.push("<span class=\"calendar\"><input" + (jade.attr("value", calendar, true, false)) + " class=\"calendarcombo\"/></span><span class=\"label\"><input tabindex=\"1\" type=\"text\"" + (jade.attr("value", description, true, false)) + (jade.attr("placeholder", t("summary"), true, false)) + " data-tabindex-prev=\"8\" class=\"input-desc\"/></span><span class=\"label\"><input tabindex=\"2\" type=\"text\"" + (jade.attr("value", place, true, false)) + (jade.attr("placeholder", t("Place"), true, false)) + " class=\"input-place\"/></span><span class=\"controls\"><button" + (jade.attr("title", t('close'), true, false)) + " role=\"button\" class=\"close fa fa-close\"></button><button" + (jade.attr("title", t('delete'), true, false)) + " role=\"button\" class=\"remove fa fa-trash\"></button><button" + (jade.attr("title", t('duplicate'), true, false)) + " role=\"button\" class=\"duplicate fa fa-copy\"></button><img src=\"img/spinner.svg\" class=\"remove-spinner\"/></span>");;return buf.join("");
 };
 if (typeof define === 'function' && define.amd) {
   define([], function() {
@@ -5626,7 +5693,7 @@ module.exports = Toggle = (function(_super) {
   Toggle.prototype.className = 'badge';
 
   Toggle.prototype.template = function(data) {
-    return "<i class='icon-" + data.icon + "'></i>";
+    return "<i class='fa fa-" + data.icon + "'></i>";
   };
 
   Toggle.prototype.initialize = function(options) {
@@ -5661,10 +5728,8 @@ module.exports = Toggle = (function(_super) {
     this.value = value;
     if (this.value) {
       this.$el.addClass('badge-info');
-      this.$('i').addClass('icon-white');
     } else {
       this.$el.removeClass('badge-info');
-      this.$('i').removeClass('icon-white');
     }
     title = this.label + ' : ' + t(value ? 'ON' : 'OFF');
     this.$el.attr('title', title);
@@ -5749,7 +5814,8 @@ module.exports = ComboBox = (function(_super) {
   ComboBox.prototype.openMenu = function() {
     this.menuOpen = true;
     this.$el.addClass('expanded');
-    return this.$el.focus().val(this.value()).autocomplete('search', '');
+    this.$el.focus().val(this.value()).autocomplete('search', '');
+    return this.$el[0].setSelectionRange(0, this.value().length);
   };
 
   ComboBox.prototype.setValue = function(value) {

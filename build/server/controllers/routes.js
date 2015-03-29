@@ -25,17 +25,10 @@ module.exports = {
   'tagid': {
     param: tags.fetch
   },
-<<<<<<< HEAD
-  'alarms/:alarmid': {
-    get: alarms.read,
-    put: alarms.update,
-    "delete": alarms["delete"]
-=======
   'tags/:tagid': {
     get: tags.read,
     put: tags.update,
-    del: tags["delete"]
->>>>>>> 95d0785fad0c21a4f96bf50b6af6e224172f5c42
+    "delete": tags["delete"]
   },
   'events': {
     get: events.all,
@@ -48,7 +41,7 @@ module.exports = {
     post: events.bulkCalendarRename
   },
   'events/delete': {
-    del: events.bulkDelete
+    "delete": events.bulkDelete
   },
   'events/:eventid': {
     get: events.read,
@@ -61,7 +54,7 @@ module.exports = {
   'public/events/:eventid/:name.ics': {
     get: events.publicIcal
   },
-  'public/events/:eventid': {
+  'public/events/:publiceventid': {
     get: events["public"]
   },
   'export/:calendarid.ics': {

@@ -18,7 +18,7 @@ module.exports =
     'tags/:tagid':
         get : tags.read
         put : tags.update
-        del : tags.delete
+        delete : tags.delete
 
     # Event management
     'events':
@@ -30,7 +30,7 @@ module.exports =
     'events/rename-calendar':
         post: events.bulkCalendarRename
     'events/delete':
-        del: events.bulkDelete
+        delete: events.bulkDelete
 
     'events/:eventid':
         get: events.read
@@ -41,12 +41,12 @@ module.exports =
         get: events.ical
     'public/events/:eventid/:name.ics':
         get: events.publicIcal
-    'public/events/:eventid':
+    'public/events/:publiceventid':
         get: events.public
 
     # ICal
     'export/:calendarid.ics':
-        get   : ical.export
+        get: ical.export
 
     'import/ical':
         post: ical.import

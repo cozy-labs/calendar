@@ -2,9 +2,12 @@ time = require 'time'
 fs = require 'fs'
 moment = require 'moment'
 multiparty = require 'multiparty'
+localization = require '../libs/localization_manager'
 ical = require 'cozy-ical'
 
 Event = require '../models/event'
+Tag = require '../models/tag'
+User  = require '../models/user'
 
 module.exports.export = (req, res) ->
 
@@ -45,16 +48,21 @@ module.exports.import = (req, res, next) ->
             return cleanUp()
 
         parser = new ical.ICalParser()
-        parser.parseFile file.path, (err, result) ->
+        options = defaultTimezone: User.timezone
+        parser.parseFile file.path, options, (err, result) ->
             if err
                 console.log err
                 console.log err.message
                 res.send 500, error: 'error occured while saving file'
                 cleanUp()
             else
-                calendarName = result?.model?.name or 'my calendar'
-                res.send 200,
-                    events: Event.extractEvents result, calendarName
-                    calendar:
-                        name: calendarName
-                cleanUp()
+                Event.tags (err, tags) ->
+                    calendars = tags.calendar
+                    key = 'default calendar name'
+                    defaultCalendar = calendars?[0] or localization.t key
+                    calendarName = result?.model?.name or defaultCalendar
+                    res.send 200,
+                        events: Event.extractEvents result, calendarName
+                        calendar:
+                            name: calendarName
+                    cleanUp()

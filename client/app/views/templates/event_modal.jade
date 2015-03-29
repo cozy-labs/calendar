@@ -2,7 +2,7 @@
     span= t('edit event')
     | &nbsp;
     if typeof id != "undefined"
-        a(href="events/#{id}/#{exportdate}.ics")
+        a(href="events/#{id}/#{file}.ics")
             i.fa.fa-download.fa-1
     button.close &times;
 .modal-body
@@ -57,7 +57,7 @@
 
         h4= t('reminder')
           | &nbsp;
-          a.btn.addreminder +
+          a.btn.addreminder.fa.fa-plus
 
         label#reminder-explanation.control-label.hide= t('Reminders before the event')
 

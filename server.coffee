@@ -19,19 +19,7 @@ start = (options, callback) ->
         fs.writeFileSync configPath, JSON.stringify config
 
     americano.start options, (err, app, server) ->
-        User = require './server/models/user'
-        Event = require './server/models/event'
-        Alarm = require './server/models/alarm'
-        #Realtimer = require 'cozy-realtime-adapter'
-
-        #realtime = Realtimer server : server, ['event.*']
-        #realtime.on 'user.*', -> User.updateUser()
-        #User.updateUser (err) -> localization.initialize ->
-            ## Migration scripts. Relies on User.
-            #Event = require './server/models/event'
-            #Alarm = require './server/models/alarm'
-        Event.migrateAll -> Alarm.migrateAll ->
-            callback err, app, server
+        callback err, app, server
 
 
 if not module.parent

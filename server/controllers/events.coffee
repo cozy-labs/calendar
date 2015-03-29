@@ -37,12 +37,14 @@ module.exports.create = (req, res) ->
     data.created = moment().tz('UTC').toISOString()
     data.lastModification = moment().tz('UTC').toISOString()
     Event.createOrGetIfImport data, (err, event) ->
-        return res.error "Server error while creating event." if err
-        if data.import or req.query.sendMails isnt 'true'
-            res.send event, 201
+        if err?
+            res.send error: "Server error while creating event.", 500
         else
-            MailHandler.sendInvitations event, false, (err, updatedEvent) ->
-                res.send (updatedEvent or event), 201
+            if data.import or req.query.sendMails isnt 'true'
+                res.send event, 201
+            else
+                MailHandler.sendInvitations event, false, (err, updatedEvent) ->
+                    res.send (updatedEvent or event), 201
 
 
 module.exports.update = (req, res) ->
@@ -72,40 +74,67 @@ module.exports.delete = (req, res) ->
             res.send success: true, 200
 
 
-module.exports.public = (req, res) ->
+module.exports.public = (req, res, next) ->
+    id = req.params.publiceventid
     key = req.query.key
-    if not visitor = req.event.getGuest key
-        locale = localization.getLocale()
-        fileName = "404_#{locale}.jade"
-        filePath = path.resolve __dirname, '../../client/', fileName
-        fileName = '404_en.jade' unless fs.existsSync(filePath)
-        res.status 404
-        res.render fileName
+    # Retrieve event
+    Event.find id, (err, event) ->
+        # If event doesn't exist or visitor hasn't access display 404 page
+        if err or not event or not visitor = event.getGuest key
+            # Retreive user localization
+            locale = localization.getLocale()
 
-    else if req.query.status in ['ACCEPTED', 'DECLINED']
-        visitor.setStatus req.query.status, (err) ->
-            return res.send error: "server error occured", 500 if err
-            res.header 'Location': "./#{req.event.id}?key=#{key}"
-            res.send 303
+            # Display 404 page
+            fileName = "404_#{locale}.jade"
+            filePath = path.resolve __dirname, '../../client/', fileName
+            # Usefull for build
+            filePathBuild = path.resolve __dirname, '../../../client/', fileName
+            unless fs.existsSync(filePath) or fs.existsSync(filePathBuild)
+                fileName = '404_en.jade'
+            res.status 404
+            res.render fileName
 
-    else
-        if req.event.isAllDayEvent()
-            dateFormatKey = 'email date format allday'
+        # If event exists, guess is authorized and request has a status
+        # Update status for guess (accepted or declined)
+        else if req.query.status in ['ACCEPTED', 'DECLINED']
+            visitor.setStatus req.query.status, (err) ->
+                next err if err?
+                res.header 'Location': "./#{event.id}?key=#{key}"
+                res.status(303).send()
+
+        # If event exists, guess is authorized and request hasn't a status
+        # Display event.
         else
-            dateFormatKey = 'email date format'
-        dateFormat = localization.t dateFormatKey
-        date = req.event.formatStart dateFormat
+            # Retrive event data
+            if event.isAllDayEvent()
+                dateFormatKey = 'email date format allday'
+            else
+                dateFormatKey = 'email date format'
+            dateFormat = localization.t dateFormatKey
+            date = event.formatStart dateFormat
 
-        locale = localization.getLocale()
-        fileName = "event_public_#{locale}.jade"
-        filePath = path.resolve __dirname, '../../client/', fileName
-        fileName = 'event_public_en.jade' unless fs.existsSync(filePath)
+            # Retrieve user localization
+            locale = localization.getLocale()
 
-        res.render fileName,
-            event: req.event
-            date: date
-            key: key
-            visitor: visitor
+            # Display event
+            fileName = "event_public_#{locale}.jade"
+            filePath = path.resolve __dirname, '../../client/', fileName
+            # Usefull for build
+            filePathBuild = path.resolve __dirname, '../../../client/', fileName
+            unless fs.existsSync(filePath) or fs.existsSync(filePathBuild)
+                fileName = 'event_public_en.jade'
+
+            specialCharacters = /[-'`~!@#$%^&*()_|+=?;:'",.<>\{\}\[\]\\\/]/gi
+            desc = event.description.replace(specialCharacters, '')
+            desc = desc.replace(/\ /g, '-')
+            day =  moment(event.start).format("YYYY-MM-DD")
+
+            res.render fileName,
+                event: event
+                file: "#{day}-#{desc}"
+                date: date
+                key: key
+                visitor: visitor
 
 
 module.exports.ical = (req, res) ->

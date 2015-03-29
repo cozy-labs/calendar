@@ -54,15 +54,18 @@ module.exports.create = function(req, res) {
   data.created = moment().tz('UTC').toISOString();
   data.lastModification = moment().tz('UTC').toISOString();
   return Event.createOrGetIfImport(data, function(err, event) {
-    if (err) {
-      return res.error("Server error while creating event.");
-    }
-    if (data["import"] || req.query.sendMails !== 'true') {
-      return res.send(event, 201);
+    if (err != null) {
+      return res.send({
+        error: "Server error while creating event."
+      }, 500);
     } else {
-      return MailHandler.sendInvitations(event, false, function(err, updatedEvent) {
-        return res.send(updatedEvent || event, 201);
-      });
+      if (data["import"] || req.query.sendMails !== 'true') {
+        return res.send(event, 201);
+      } else {
+        return MailHandler.sendInvitations(event, false, function(err, updatedEvent) {
+          return res.send(updatedEvent || event, 201);
+        });
+      }
     }
   });
 };
@@ -109,51 +112,60 @@ module.exports["delete"] = function(req, res) {
   });
 };
 
-module.exports["public"] = function(req, res) {
-  var date, dateFormat, dateFormatKey, fileName, filePath, key, locale, visitor, _ref;
+module.exports["public"] = function(req, res, next) {
+  var id, key;
+  id = req.params.publiceventid;
   key = req.query.key;
-  if (!(visitor = req.event.getGuest(key))) {
-    locale = localization.getLocale();
-    fileName = "404_" + locale + ".jade";
-    filePath = path.resolve(__dirname, '../../client/', fileName);
-    if (!fs.existsSync(filePath)) {
-      fileName = '404_en.jade';
-    }
-    res.status(404);
-    return res.render(fileName);
-  } else if ((_ref = req.query.status) === 'ACCEPTED' || _ref === 'DECLINED') {
-    return visitor.setStatus(req.query.status, function(err) {
-      if (err) {
-        return res.send({
-          error: "server error occured"
-        }, 500);
+  return Event.find(id, function(err, event) {
+    var date, dateFormat, dateFormatKey, day, desc, fileName, filePath, filePathBuild, locale, specialCharacters, visitor, _ref;
+    if (err || !event || !(visitor = event.getGuest(key))) {
+      locale = localization.getLocale();
+      fileName = "404_" + locale + ".jade";
+      filePath = path.resolve(__dirname, '../../client/', fileName);
+      filePathBuild = path.resolve(__dirname, '../../../client/', fileName);
+      if (!(fs.existsSync(filePath) || fs.existsSync(filePathBuild))) {
+        fileName = '404_en.jade';
       }
-      res.header({
-        'Location': "./" + req.event.id + "?key=" + key
+      res.status(404);
+      return res.render(fileName);
+    } else if ((_ref = req.query.status) === 'ACCEPTED' || _ref === 'DECLINED') {
+      return visitor.setStatus(req.query.status, function(err) {
+        if (err != null) {
+          next(err);
+        }
+        res.header({
+          'Location': "./" + event.id + "?key=" + key
+        });
+        return res.status(303).send();
       });
-      return res.send(303);
-    });
-  } else {
-    if (req.event.isAllDayEvent()) {
-      dateFormatKey = 'email date format allday';
     } else {
-      dateFormatKey = 'email date format';
+      if (event.isAllDayEvent()) {
+        dateFormatKey = 'email date format allday';
+      } else {
+        dateFormatKey = 'email date format';
+      }
+      dateFormat = localization.t(dateFormatKey);
+      date = event.formatStart(dateFormat);
+      locale = localization.getLocale();
+      fileName = "event_public_" + locale + ".jade";
+      filePath = path.resolve(__dirname, '../../client/', fileName);
+      filePathBuild = path.resolve(__dirname, '../../../client/', fileName);
+      if (!(fs.existsSync(filePath) || fs.existsSync(filePathBuild))) {
+        fileName = 'event_public_en.jade';
+      }
+      specialCharacters = /[-'`~!@#$%^&*()_|+=?;:'",.<>\{\}\[\]\\\/]/gi;
+      desc = event.description.replace(specialCharacters, '');
+      desc = desc.replace(/\ /g, '-');
+      day = moment(event.start).format("YYYY-MM-DD");
+      return res.render(fileName, {
+        event: event,
+        file: day + "-" + desc,
+        date: date,
+        key: key,
+        visitor: visitor
+      });
     }
-    dateFormat = localization.t(dateFormatKey);
-    date = req.event.formatStart(dateFormat);
-    locale = localization.getLocale();
-    fileName = "event_public_" + locale + ".jade";
-    filePath = path.resolve(__dirname, '../../client/', fileName);
-    if (!fs.existsSync(filePath)) {
-      fileName = 'event_public_en.jade';
-    }
-    return res.render(fileName, {
-      event: req.event,
-      date: date,
-      key: key,
-      visitor: visitor
-    });
-  }
+  });
 };
 
 module.exports.ical = function(req, res) {

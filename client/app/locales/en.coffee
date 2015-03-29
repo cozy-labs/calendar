@@ -1,4 +1,5 @@
 module.exports =
+    "default calendar name"             : "my calendar"
     "Add"                               : "Add"
     "event"                             : "Event"
     "create event"                      : "Event creation"
@@ -12,6 +13,8 @@ module.exports =
     "change color"                      : "Change color"
     "rename"                            : "Rename"
     "export"                            : "Export"
+    "remove"                            : "Remove event"
+    "duplicate"                         : "Duplicate event"
     "Place"                             : "Place"
     'all day'                           : 'all day'
     'All day'                           : 'All day'
@@ -68,6 +71,8 @@ module.exports =
     "ON"                                : "on"
     "OFF"                               : "off"
     "no description"                    : "No description"
+    "add calendar"                      : "Add calendar"
+    "new calendar"                      : "New calendar"
 
 # RRULE related
     "recurrence"                        : "Recurrence"

@@ -33,10 +33,13 @@ module.exports.create = function(req, res) {
   var data;
   data = req.body;
   return Tag.getOrCreate(data, function(err, tag) {
-    if (err) {
-      return res.error("Server error while creating tag.");
+    if (err != null) {
+      return res.send({
+        error: "Server error while creating tag."
+      }, 500);
+    } else {
+      return res.send(tag, 201);
     }
-    return res.send(tag, 201);
   });
 };
 

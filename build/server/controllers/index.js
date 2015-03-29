@@ -11,7 +11,7 @@ Contact = require('../models/contact');
 
 User = require('../models/user');
 
-cozydb = require('cozydb');
+cozydb = require('cozy-db-pouchdb');
 
 WebDavAccount = require('../models/webdavaccount');
 

@@ -2,11 +2,7 @@
 var Event, User, async, cozydb, log, momentTz,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
-<<<<<<< HEAD
-americano = require('americano-cozy-pouchdb');
-=======
-cozydb = require('cozydb');
->>>>>>> 95d0785fad0c21a4f96bf50b6af6e224172f5c42
+cozydb = require('cozy-db-pouchdb');
 
 momentTz = require('moment-timezone');
 
@@ -138,8 +134,8 @@ Event.prototype.formatStart = function(dateFormat) {
 };
 
 Event.prototype.getGuest = function(key) {
-  var currentguest, guests, _ref;
-  guests = ((_ref = this.attendees) != null ? _ref.toJSON() : void 0) || [];
+  var currentguest, guests;
+  guests = this.attendees || [];
   currentguest = guests.filter(function(guest) {
     return guest.key === key;
   })[0];
@@ -247,8 +243,6 @@ Event.bulkDelete = function(calendarName, callback) {
   }, function(err, events) {
     return async.eachLimit(events, 10, function(event, done) {
       return event.destroy(done);
-    }, function(err) {
-      return callback(err, events);
     });
   });
 };

@@ -25,6 +25,10 @@ ul#menu
 
     a
         background: transparent
+        display: inline-block
+
+        &.calendar-add
+          width 150px
 
   li.divider
     background-color transparent
@@ -41,6 +45,24 @@ ul#menu
     i
         margin-right: 10px
         margin-left: 10px
+
+    &.calendars
+        position relative
+
+        .calendar-add
+            display none
+            margin-left 10px
+            font-size 15px
+            text-shadow none
+
+        &:hover .calendar-add
+            display inline-block
+
+        .spinner
+            margin-left 10px
+            display none
+            height 15px
+            width 15px
 
   &> li:hover
     background #FFC47F
@@ -63,7 +85,10 @@ ul#menu
 
         .spinHolder
           position absolute
-          left -100%
+          left -150%
+          height 15px
+          width 15px
+          display none
 
       input.calendar-name
         width 100px

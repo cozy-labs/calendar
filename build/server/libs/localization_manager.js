@@ -7,7 +7,7 @@ fs = require('fs');
 
 Polyglot = require('node-polyglot');
 
-cozydb = require('cozydb');
+cozydb = require('cozy-db-pouchdb');
 
 path = require('path');
 

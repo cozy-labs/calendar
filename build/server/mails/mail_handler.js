@@ -12,20 +12,11 @@ log = require('printit')({
   date: true
 });
 
+cozydb = require('cozy-db-pouchdb');
+
 Event = require('../models/event');
 
-cozydb = require('cozydb');
-
-<<<<<<< HEAD
-try {
-  CozyAdapter = require('americano-cozy-pouchdb/node_modules/jugglingdb-pouchdb-adapter');
-} catch (_error) {
-  e = _error;
-  CozyAdapter = require('jugglingdb-cozy-adapter');
-}
-=======
 localization = require('../libs/localization_manager');
->>>>>>> 95d0785fad0c21a4f96bf50b6af6e224172f5c42
 
 module.exports.sendInvitations = function(event, dateChanged, callback) {
   var guests, needSaving;
@@ -62,7 +53,7 @@ module.exports.sendInvitations = function(event, dateChanged, callback) {
       }
       dateFormat = localization.t(dateFormatKey);
       date = event.formatStart(dateFormat);
-      url = "https://" + domain + "/public/calendar/events/" + event.id;
+      url = domain + "public/calendar/events/" + event.id;
       _ref = event.toJSON(), description = _ref.description, place = _ref.place;
       place = (place != null ? place.length : void 0) > 0 ? "(" + place + ")" : "";
       templateOptions = {
@@ -78,7 +69,7 @@ module.exports.sendInvitations = function(event, dateChanged, callback) {
         html: htmlTemplate(templateOptions),
         content: localization.t(templateKey, templateOptions)
       };
-      return CozyAdapter.sendMailFromUser(mailOptions, function(err) {
+      return cozydb.api.sendMailFromUser(mailOptions, function(err) {
         if (!err) {
           needSaving = true;
           guest.status = 'NEEDS-ACTION';
@@ -135,7 +126,7 @@ module.exports.sendDeleteNotification = function(event, callback) {
       content: localization.t('email delete content', templateOptions),
       html: htmlTemplate(templateOptions)
     };
-    return CozyAdapter.sendMailFromUser(mailOptions, function(err) {
+    return cozydb.api.sendMailFromUser(mailOptions, function(err) {
       if (err != null) {
         log.error("An error occured while sending email");
         log.error(err);
