@@ -1,50 +1,37 @@
-module.exports = class Tags extends Backbone.Collection
+Tag = require '../models/tag'
+colorhash = require 'lib/colorhash'
 
+module.exports = class TagCollection extends Backbone.Collection
+
+    model: Tag
     url: 'tags'
-    model: class Tag extends Backbone.Model
-        idAttribute: 'label'
-        defaults: visible: true
-        toString: -> @get 'label'
 
-    initialize: ->
-        @alarmCollection = app.alarms
-        @eventCollection = app.events
+    # Uniqueness against Tag.name field.
+    add: (models, options) ->
+        # handle singular or arrays
+        if _.isArray models
+            models = _.clone models
+        else
+            models = if models then [models] else []
 
-        @listenTo @alarmCollection, 'add', @onBaseCollectionAdd
-        @listenTo @alarmCollection, 'change:tags', @onBaseCollectionChange
-        @listenTo @alarmCollection, 'remove', @onBaseCollectionRemove
-        @listenTo @alarmCollection, 'reset', @resetFromBase
+        models = models.filter (model) =>
+            return not @some (collectionModel) ->
+                name = if model?.name then model.name else model.get 'name'
+                return collectionModel.get('name') is name
 
-        @listenTo @eventCollection, 'add', @onBaseCollectionAdd
-        @listenTo @eventCollection, 'change:tags', @onBaseCollectionChange
-        @listenTo @eventCollection, 'remove', @onBaseCollectionRemove
-        @listenTo @eventCollection, 'reset', @resetFromBase
+        super models, options
 
-        @resetFromBase()
+    getByName: (name) ->
+        return @find (item) ->
+            return item.get('name') is name
 
-    resetFromBase: ->
-        @reset []
-        @alarmCollection.each (model) => @onBaseCollectionAdd model
-        @eventCollection.each (model) => @onBaseCollectionAdd model
+    # Get existing or newly created tag with specified name.
+    getOrCreateByName: (name) ->
+        tag = @getByName name
+        
+        if not tag
+            tag = new Tag 
+                name: name
+                color: colorhash name
 
-    onBaseCollectionChange: (model) ->
-        @resetFromBase()
-
-    onBaseCollectionAdd: (model) ->
-        [calendar, tags...] = model.get 'tags'
-        @add type: 'calendar', label:calendar
-        @add type: 'tag', label:tag for tag in tags
-
-    onBaseCollectionRemove: (model) ->
-        @resetFromBase()
-
-    parse: (raw) ->
-        out = []
-        out.push type:'calendar', label:tag for tag in raw.calendars
-        out.push type:'tag',      label:tag for tag in raw.tags
-        return out
-
-    stringify = (tag) -> tag.toString()
-
-    toArray: -> @map stringify
-    calendars: -> @where(type:'calendar').map (tag) -> tag.attributes
+        return tag

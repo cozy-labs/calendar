@@ -1,24 +1,39 @@
-americano = require 'americano-cozy-pouchdb'
-time = require 'time'
+cozydb = require 'cozy-db-pouchdb'
+momentTz = require 'moment-timezone'
+async = require 'async'
+log = require('printit')
+    prefix: 'event:model'
+
 User = require './user'
 
-module.exports = Event = americano.getModel 'Event',
-    start       : type : String
-    end         : type : String
-    place       : type : String
-    # @TODO : rename those to follow ical (NEED PATCH)
-    details     : type : String # = ical DESCRIPTION
-    description : type : String # = ical SUMMARY
-    diff        : type : Number
-    rrule       : type : String
-    tags        : type : (x) -> x # DAMN IT JUGGLING
-    attendees   : type : [Object]
-    related: type: String, default: null
+module.exports = Event = cozydb.getModel 'Event',
+    start       : type: String
+    end         : type: String
+    place       : type: String
+    details     : type: String
+    description : type: String
+    rrule       : type: String
+    tags        : [String]
+    attendees   : type: [Object]
+    related     : type: String, default: null
+    timezone    : type: String
+    alarms      : type: [Object]
+    created     : type: String
+    lastModification: type: String
+
+# 'start' and 'end' use those format,
+# According to allDay or rrules.
+Event.dateFormat = 'YYYY-MM-DD'
+Event.ambiguousDTFormat = 'YYYY-MM-DD[T]HH:mm:00.000'
+Event.utcDTFormat = 'YYYY-MM-DD[T]HH:mm:00.000[Z]'
+
+# Handle only unique units strings.
+Event.alarmTriggRegex = /(\+?|-)PT?(\d+)(W|D|H|M|S)/
 
 require('cozy-ical').decorateEvent Event
 
-Event.all = (params, callback) ->
-    Event.request "all", params, callback
+Event.byCalendar = (calendarId, callback) ->
+    Event.request 'byCalendar', key: calendarId, callback
 
 Event.tags = (callback) ->
     Event.rawRequest "tags", group: true, (err, results) ->
@@ -29,20 +44,35 @@ Event.tags = (callback) ->
             out[type].push tag
         callback null, out
 
-# before sending to the client
-# set the start/end in TZ time
-Event::timezoned = (timezone) ->
-    timezone ?= User.timezone
+Event.createOrGetIfImport = (data, callback) ->
+    if data.import
+        Event.request 'byDate', key: data.start, (err, events) ->
+            if err
+                log.error err
+                Event.create data, callback
+            else if events.length is 0
+                Event.create data, callback
+            else if data.description is events[0].description
+                log.warn 'Event already exists, it was not created.'
+                callback(null, events[0])
+            else
+                Event.create data, callback
+    else
+        Event.create data, callback
 
-    timezonedDate = new time.Date(@start, 'UTC')
-    timezonedDate.setTimezone(timezone)
-    @start = timezonedDate.toString().slice(0, 24)
+Event::isAllDayEvent = -> return @start.length is 10
 
-    timezonedDate = new time.Date(@end, 'UTC')
-    timezonedDate.setTimezone(timezone)
-    @end = timezonedDate.toString().slice(0, 24)
+Event::formatStart = (dateFormat) ->
+    if @rrule
+        date = momentTz.tz @start, @timezone
+    else
+        date = momentTz @start
 
-    return @
+    date.tz User.timezone
+    formattedDate = date.format dateFormat
+    formattedDate += " (#{User.timezone})" unless @isAllDayEvent()
+
+    return formattedDate
 
 # @TODO : this doesn't handle merge correctly
 Event::getGuest = (key) ->
@@ -55,68 +85,86 @@ Event::getGuest = (key) ->
 
     return currentguest
 
+# Return the emails to alert if action is EMAIL, or BOTH on the alarms.
+# Actualy the attendee is the cozy's user.
+Event::getAlarmAttendeesEmail = ->
+    return [User.email]
+
+# November 2014 Migration :
+# Migrate from v1.0.4 to next-gen doctypes.
+# Use date format as key to detect doctype version.
+Event::migrateDoctype = (callback) ->
+
+    hasMigrate = @migrateDateTime 'start'
+    # Quick quit if no migration.
+    if not hasMigrate
+        callback()
+    else
+        @migrateDateTime 'end'
+
+        if @rrule
+            @timezone = User.timezone
+
+        else
+            @timezone = undefined
+
+        @save callback
 
 
-# before saving
-# take an attributes object
-# if the object has a TZ, the start/end is considered to be in this TZ
-# else we use the User's TZ
-# set the start/end to UTC
-Event.toUTC = (attrs) ->
-    timezone = attrs.timezone or User.timezone
+Event::migrateDateTime = (dateField) ->
+    dateStr = @[dateField]
 
-    start = new time.Date(attrs.start, timezone)
-    start.setTimezone 'UTC'
-    attrs.start = start.toString().slice(0, 24)
+    # Skip buggy or empty values.
+    if not dateStr
+        return false
 
-    end = new time.Date(attrs.end, timezone)
-    end.setTimezone 'UTC'
-    attrs.end = end.toString().slice(0, 24)
+    # Check if it's already ISO8601
+    # Skip allDay event (leght is 10), because they didn't exist.
+    if dateStr.length is 10 or dateStr.charAt(10) is 'T'
+        return false
 
-    return attrs
+    d = dateStr
+    # Check for a timezone
+    if "GMT" not in dateStr
+        d = d + " GMT+0000"
 
+    m = momentTz.tz d, 'UTC'
 
-    # Further work to make the doctype iCal compliant
-    # email properties
-    #property 'summary', String, default: null
-    #property 'attendee', String, default: null
+    if @rrule
+        timezone = User.timezone or "Europe/Paris"
+        @[dateField] = m.tz(timezone).format Event.ambiguousDTFormat
 
-    # display properties
-    #property 'duration', String
-    #property 'repeat', String
+    else
+        @[dateField] = m.format Event.utcDTFormat
 
-    ### Constraints an alarm of alarms
-        * All types
-            action{1} : in [AUDIO, DISPLAY, EMAIL, PROCEDURE]
-            trigger{1} : when the alarm is triggered
+    return true
 
+Event::patchTag = (callback) ->
+    if not @tags? or not @tags[0]?
+        @updateAttributes tags: ['my-calendar'], callback
+    else
+        callback()
 
-        * Display
-            description{1} : text to display when alarm is triggered
-            (
-                duration
-                repeat
-            )?
+Event.migrateAll = (callback) ->
+    Event.all {}, (err, events) ->
+        if err?
+            console.log err
+            callback()
+        else
+            async.eachLimit events, 10, (event, done) ->
+                event.migrateDoctype -> event.patchTag done
+            , callback
 
-        * Email
-            summary{1} : email title
-            description{1} : email content
-            attendee+ : email addresses the message should be sent to
-            attach* : message attachments
+Event.bulkCalendarRename = (oldName, newName, callback) ->
+    Event.request 'byCalendar', key: oldName, (err, events) ->
+        async.eachLimit events, 10, (event, done) ->
+            # clones the array
+            tags = [].concat event.tags
+            tags[0] = newName
+            event.updateAttributes {tags}, done
+        , (err) -> callback err, events
 
-        * Audio
-            (
-                duration
-                repeat
-            )?
-
-            attach? : sound resource (base-64 encoded binary or URL)
-
-        * Proc
-            attach{1} : procedure resource to be invoked
-            (
-                duration
-                repeat
-            )?
-            description?
-    ###
+Event.bulkDelete = (calendarName, callback) ->
+    Event.request 'byCalendar', key: calendarName, (err, events) ->
+        async.eachLimit events, 10, (event, done) ->
+            event.destroy done

@@ -3,49 +3,58 @@ fs = require 'fs'
 moment = require 'moment'
 multiparty = require 'multiparty'
 ical = require 'cozy-ical'
+
 Event = require '../models/event'
-Alarm = require '../models/alarm'
-User = require  '../models/user'
 
 module.exports.export = (req, res) ->
-    calendar = Alarm.getICalCalendar()
-    Alarm.all (err, alarms) =>
+
+    calendarId = req.params.calendarid
+
+    calendar = new ical.VCalendar
+        organization: 'Cozy'
+        title: 'Cozy Calendar'
+        name: calendarId
+    Event.byCalendar calendarId, (err, events) ->
         if err
-            res.send error: true, msg: 'Server error occurred while retrieving data'
+            res.send
+                error: true
+                msg: 'Server error occurred while retrieving data'
         else
-            Event.all (err, events) =>
-                if err then res.send
-                        error: true
-                        msg: 'Server error occurred while retrieving data'
-                else
-                    if alarms.length > 0
-                        for alarm in alarms
-                            calendar.add alarm.timezoneToIcal()
-                            calendar.add alarm.toIcal()
-                    if events.length > 0
-                        calendar.add event.toIcal() for event in events
+            if events.length > 0
+                calendar.add event.toIcal() for event in events
 
-                    res.header 'Content-Type': 'text/calendar'
-                    res.send calendar.toString()
+            res.header 'Content-Type': 'text/calendar'
+            res.send calendar.toString()
 
+module.exports.import = (req, res, next) ->
 
-module.exports.import = (req, res) ->
     form = new multiparty.Form()
-
     form.parse req, (err, fields, files) ->
-        if files.file.length > 0
-            file = files.file[0]
-            parser = new ical.ICalParser()
-            parser.parseFile file.path, (err, result) ->
-                if err
-                    console.log err
-                    console.log err.message
-                    res.send error: 'error occured while saving file', 500
-                else
-                    User.getTimezone (err, timezone) ->
-                        fs.unlink file.path, ->
-                            res.send
-                                events: Event.extractEvents result
-                                alarms: Alarm.extractAlarms result, timezone
-        else
-            res.send error: 'no file sent', 500
+
+        return next err if err
+
+        cleanUp = ->
+            for key, arrfile of files
+                for file in arrfile
+                    fs.unlink file.path, (err) ->
+                        if err
+                            console.log "failed to cleanup file", file.path, err
+
+        unless file = files['file']?[0]
+            res.send error: 'no file sent', 400
+            return cleanUp()
+
+        parser = new ical.ICalParser()
+        parser.parseFile file.path, (err, result) ->
+            if err
+                console.log err
+                console.log err.message
+                res.send 500, error: 'error occured while saving file'
+                cleanUp()
+            else
+                calendarName = result?.model?.name or 'my calendar'
+                res.send 200,
+                    events: Event.extractEvents result, calendarName
+                    calendar:
+                        name: calendarName
+                cleanUp()

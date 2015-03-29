@@ -1,10 +1,20 @@
+span.calendar
+    input.calendarcombo(value=calendar)
+
+span.label
+    input.input-desc(tabindex="1",
+                     type="text",
+                     value=description,
+                     placeholder=t("summary"),
+                     data-tabindex-prev="8")
+
+span.label
+    input.input-place(tabindex="2",
+                      type="text",
+                      value=place,
+                      placeholder=t("Place"))
 
 
-input#calendarcombo(value=calendar)
-
-if !editionMode
-    a#toggle-type= t('change to') + " " + t(type=='event'?'alarm':'event')
-
-
-button.close(title=t('close')) &times;
-i.remove.icon-trash(title=t('delete'))
+span.controls
+    button.close(title=t('close'), role="button") &times;
+    i.remove.icon-trash(title=t('delete'), role="button")

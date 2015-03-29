@@ -62,37 +62,50 @@ task 'tests', "Run tests #{taskDetails}", (opts) ->
             logger.info "Tests succeeded!"
             process.exit 0
 
-task 'tests:client', 'run client tests through mocha', (opts) ->
-    exec "mocha-phantomjs client/_specs/index.html", (err, stdout, stderr) ->
-        if err
-            console.log "Running mocha caught exception: \n" + err
-        console.log stdout
-
 task "lint", "Run Coffeelint", ->
     process.env.TZ = "Europe/Paris"
     command = "coffeelint "
-    command += " -f coffeelint.json -r server/"
+    files = walk 'server/'
+    files = files.concat walk 'client/app', ['fr.coffee', 'en.coffee']
+    command += " -f coffeelint.json #{files.join ' '}"
     logger.options.prefix = 'cake:lint'
     logger.info 'Start linting...'
     exec command, (err, stdout, stderr) ->
         if err
             logger.error err
         else
-            console.log stdout
+            logger.info stdout
+
+buildJade = ->
+    jade = require 'jade'
+    jadeFile = new RegExp '\.jade$'
+    for file in fs.readdirSync './client/'when jadeFile.test file
+        filename = "./client/#{file}"
+        template = fs.readFileSync filename, 'utf8'
+        output = "var jade = require('jade/runtime');\n"
+        output += "module.exports = " + jade.compileClient template, {filename}
+        name = file.replace '.jade', '.js'
+        fs.writeFileSync "./build/client/#{name}", output
 
 task 'build', 'Build CoffeeScript to Javascript', ->
     logger.options.prefix = 'cake:build'
     logger.info "Start compilation..."
     command = "coffee -cb --output build/server server && " + \
               "coffee -cb --output build/ server.coffee && " + \
-              "cp -R server/mails/*.jade build/server/mails/ && " + \
+              "rm -rf build/server/mails/en && " + \
+              "rm -rf build/server/mails/fr && " + \
+              "mkdir build/server/mails/en && " + \
+              "mkdir build/server/mails/fr && " + \
+              "cp server/mails/fr/*.jade build/server/mails/fr/ && " + \
+              "cp server/mails/en/*.jade build/server/mails/en/ && " + \
               "rm -rf build/client && mkdir build/client && " + \
-              "cp -R client/*.jade build/client/ && " + \
+              "coffee -cb --output build/client/app/locales client/app/locales && " + \
               "cp -R client/public build/client/"
     exec command, (err, stdout, stderr) ->
         if err
             logger.error "An error has occurred while compiling:\n" + err
             process.exit 1
         else
+            buildJade()
             logger.info "Compilation succeeded."
             process.exit 0

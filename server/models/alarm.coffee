@@ -1,22 +1,25 @@
-americano = require 'americano-cozy-pouchdb'
-time = require 'time'
+cozydb = require 'cozy-db-pouchdb'
+async = require 'async'
+moment = require 'moment-timezone'
+Event = require './event'
+log = require('printit')
+    prefix: 'alarm:model'
+
 User = require './user'
 
-module.exports = Alarm = americano.getModel 'Alarm',
-    action       : type : String, default: 'DISPLAY'
-    trigg        : type : String
-    description  : type : String
-    timezone     : type : String
-    timezoneHour : type : String
-    rrule        : type : String
-    tags         : type : (x) -> x # DAMN IT JUGGLING
-    related      : type : String, default: null
-
-
-require('cozy-ical').decorateAlarm Alarm
-
-Alarm.all = (params, callback) ->
-    Alarm.request "all", params, callback
+# Alarm should be interpreted as VTODO + VALARM iCal objects.
+# with DTSTART <-> trigg ; DURATION = 0 ; TRIGGER = 0 .
+module.exports = Alarm = cozydb.getModel 'Alarm',
+    action : type : String, default: 'DISPLAY' # One of DISPLAY, EMAIL, BOTH.
+    trigg : type : String # DT to trigger at.
+        # As UTC if ponctual. If recurent, to interpret in @timezone.
+    description : type : String
+    timezone : type : String # Timezone of trigg time (if recurent)
+    rrule : type : String # recurring rule.
+    tags : type : [String]
+    related : type : String, default: null
+    created     : type: String
+    lastModification: type: String
 
 Alarm.tags = (callback) ->
     Alarm.rawRequest "tags", group: true, (err, results) ->
@@ -27,41 +30,57 @@ Alarm.tags = (callback) ->
             out[type].push tag
         callback null, out
 
-# before sending to the client
-# set the trigg in TZ time
-Alarm::timezoned = (timezone) ->
-    throw new Error "buggy alarm" + @id if not @trigg
-    timezone ?= User.timezone
-    timezonedDate = new time.Date @trigg, 'UTC'
-    timezonedDate.setTimezone timezone
-    @timezone ?= timezone
-    @trigg = timezonedDate.toString().slice(0, 24)
-    return @
+Alarm.createOrGetIfImport = (data, callback) ->
+    if data.import
+        Alarm.request 'byDate', key: data.trigg, (err, alarms) ->
+            if err
+                log.error err
+                Alarm.create data, callback
+            else if alarms.length is 0
+                Alarm.create data, callback
+            else if data.description is alarms[0].description
+                log.warn 'Alarm already exists, it was not created.'
+                callback(null, alarms[0])
+            else
+                Alarm.create data, callback
+    else
+        Alarm.create data, callback
 
-# before saving
-# take an attributes object
-# set the trigg to UTC
-# store the TZed trigg in timezoneHour
-# @TODO : handling TZ clientside would be better
-Alarm.toUTC = (attrs, timezone) ->
-    timezone ?= User.timezone
+# Return the emails to alert if action is EMAIL, or BOTH.
 
-    if attrs.timezoneHour # popover save
-        if attrs.id
-            trigg = new time.Date attrs.trigg, User.timezone
-            trigg.setTimezone attrs.timezone
+# Actualy the attendee is the cozy's user.
+Alarm::getAttendeesEmail = ->
+    return [User.email]
+
+# November 2014 Migration :
+# Migrate from v1.0.4 to next-gen doctypes.
+# Use date format as key to detect doctype version.
+Alarm::migrateDoctype = (callback) ->
+    timezone = @timezone or 'UTC'
+    date = moment.tz(@trigg, timezone).format 'YYYY-MM-DD'
+
+    body =
+        start: date
+        end: date
+        description: @description
+        place: ''
+        rrule: ''
+        tags: @tags
+        alarms: [
+            {id: 1, trigg: '-PT10M', action: 'DISPLAY'}
+        ]
+        attendees: []
+        created: moment().tz('UTC').toISOString()
+        lastModification: moment().tz('UTC').toISOString()
+
+    Event.create body, => @destroy callback
+
+Alarm.migrateAll = (callback) ->
+    Alarm.all {}, (err, alarms) ->
+        if err
+            console.log err
+            callback()
         else
-            trigg = new time.Date attrs.trigg, attrs.timezone
-
-        [hours, minutes] = attrs.timezoneHour.split(':')
-        trigg.setHours(hours)
-        trigg.setMinutes(minutes)
-
-    else # D&D in the interface
-        trigg = new time.Date(attrs.trigg, User.timezone)
-        trigg.setTimezone(attrs.timezone)
-
-    attrs.timezoneHour = trigg.toString().slice(16, 21)
-    trigg.setTimezone('UTC')
-    attrs.trigg = trigg.toString().slice(0, 24)
-    return attrs
+            async.eachLimit alarms, 10, (alarm, done) ->
+                alarm.migrateDoctype done
+            , callback

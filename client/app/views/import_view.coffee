@@ -2,8 +2,6 @@ BaseView = require '../lib/base_view'
 ComboBox = require 'views/widgets/combobox'
 helpers = require '../helpers'
 
-Alarm = require '../models/alarm'
-AlarmList = require './import_alarm_list'
 Event = require '../models/event'
 EventList = require './import_event_list'
 
@@ -22,8 +20,6 @@ module.exports = class ImportView extends BaseView
     afterRender: ->
         @$(".confirmation").hide()
         @$(".results").hide()
-        @alarmList = new AlarmList el: @$ "#import-alarm-list"
-        @alarmList.render()
         @eventList = new EventList el: @$ "#import-event-list"
         @eventList.render()
         @uploader = @$ '#import-file-input'
@@ -37,7 +33,7 @@ module.exports = class ImportView extends BaseView
             @calendarCombo = new ComboBox
                 el: @$('#import-calendar-combo')
                 small: true
-                source: app.tags.calendars()
+                source: app.calendars.toAutoCompleteSource()
         , 500
 
     onFileChanged: (event) ->
@@ -45,8 +41,14 @@ module.exports = class ImportView extends BaseView
         return unless file
         form = new FormData()
         form.append "file", file
-        @importButton.find('span').html '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
+        @importButton.find('span').html '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
         @importButton.spin 'tiny'
+
+        # Empty event collection before importing new lists.
+        @eventList.collection.reset()
+        @$('.import-progress').html null
+        @$('.import-errors').html null
+
         $.ajax
             url: "import/ical"
             type: "POST"
@@ -54,16 +56,17 @@ module.exports = class ImportView extends BaseView
             processData: false
             contentType: false
             success: (result) =>
-
-                if result?.alarms?
-                    for valarm in result.alarms
-                        alarm = new Alarm valarm, parse: true
-                        @alarmList.collection.add alarm
+                if result?.calendar?.name
+                    # @$('#import-calendar-combo').val result.calendar.name
+                    @calendarCombo.setValue result.calendar.name
 
                 if result?.events?
+                    events = []
                     for vevent in result.events
-                        event = new Event vevent
-                        @eventList.collection.add event
+                        events.push new Event vevent
+                    # Speed optimisation: add all events at once is MUCH faster
+                    # than one by one.
+                    @eventList.collection.add events
 
                 @$(".import-form").fadeOut =>
                     @resetUploader()
@@ -91,54 +94,68 @@ module.exports = class ImportView extends BaseView
         calendar = 'my calendar' if not calendar? or calendar is ''
 
         # Amount of elements to import.
-        counter = @alarmList.collection.length + @eventList.collection.length
+        total = @eventList.collection.length
+        counter = 0
 
-        # When an element failed to import, an error message is displayed.
-        # Finish function is called when there is no more element to save.
-        onFaillure = (model) =>
-            counter = counter - 1
-            alert t 'some event fail to save'
-            finish() if counter is 0
+        # Set the progress widget
+        $('.import-progress').html """
+        <p>#{t 'imported events'}:
+            <span class="import-counter">0</span>/#{total}</p>
+        """
 
-        # When an element is successfully imported, it is added to the current
-        # calendar view.
-        # Finish function is called when there is no more element to save.
-        onSuccess = (model) =>
-            switch model.constructor
-                when Event then app.events.add model
-                when Alarm then app.alarms.add model
+        updateCounter = ->
+            counter++
+            $('.import-counter').html counter
 
-            counter = counter - 1
-            finish() if counter is 0
+        addError = (element, templatePath) ->
+            if $('.import-errors').html().length is 0
+                $('.import-errors').html """
+                <p>#{t 'import error occured for'}:</p>
+                """
 
-        # When import is finished, the import form is reset and the calendar
-        # view is displayed.
-        finish = =>
-            @$(".confirmation").fadeOut()
-            @$(".results").slideUp =>
-                @$(".import-form").fadeIn()
-                @confirmButton.html t 'confirm import'
-            @alarmList.collection.reset()
-            @eventList.collection.reset()
-            app.router.navigate "calendar", true
+            $('.import-errors').append(
+                require(templatePath)(element.attributes)
+            )
 
         # Show loading spinner.
         @confirmButton.html '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
         @confirmButton.spin 'tiny'
 
-        # Save every imported alarms to the database.
-        @alarmList.collection.each (alarm) ->
-            alarm.set 'tags', [calendar]
-            alarm.save null,
-                success: onSuccess
-                error: onFaillure
-
-        # Save every imported events to the database.
-        @eventList.collection.each (event) ->
+        importEvent = (event, callback) ->
             event.set 'tags', [calendar]
+            event.set 'id', null
+            event.set 'import', true
             event.save null,
-                success: onSuccess
-                error: onFaillure
+                success: (model) ->
+                    # When an element is successfully imported, it is added
+                    # to the current calendar view.
+                    app.events.add model
+                    updateCounter()
+                    callback()
+                error: ->
+                    # When an element failed to import, an error message is
+                    # displayed.
+                    addEventError event, './templates/import_event'
+                    updateCounter()
+                    callback()
+
+        # When import is finished, the import form is reset and the
+        # calendar view is displayed.
+        finalizeImport = (err) =>
+            alert t 'import finished'
+            @$(".confirmation").fadeOut()
+            @$(".results").slideUp =>
+                @$(".import-form").fadeIn()
+                @confirmButton.html t 'confirm import'
+                if $('.import-errors').html().length is 0
+                    app.router.navigate "calendar", true
+
+        # Save the calendar tag 
+        @calendarCombo.save()
+        
+        # Save every imported events to the database.
+        events = @eventList.collection.models
+        async.eachSeries events, importEvent, finalizeImport
 
     onCancelImportClicked: ->
         @$(".confirmation").fadeOut()

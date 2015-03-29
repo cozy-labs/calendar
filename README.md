@@ -5,8 +5,14 @@ don't require the whole Cozy platform. Main features are:
 
 * Simple UI
 * Event tagging
+<<<<<<< HEAD
 * Event sharing (via email) (fix on the way)
 * ICal import (fix on the way) 
+=======
+* Event sharing (via email)
+* ICal import
+* CalDAV sync (require [Cozy Sync](https://github.com/mycozycloud/cozy-sync))
+>>>>>>> 95d0785fad0c21a4f96bf50b6af6e224172f5c42
 
 ## Install
 
@@ -79,7 +85,7 @@ hardware where no one profiles you.
 You can reach the Cozy Community by:
 
 * Chatting with us on IRC #cozycloud on irc.freenode.net
-* Posting on our [Forum](https://groups.google.com/forum/?fromgroups#!forum/cozy-cloud)
-* Posting issues on the [Github repos](https://github.com/mycozycloud/)
+* Posting on our [Forum](https://forum.cozy.io/)
+* Posting issues on the [Github repos](https://github.com/cozy/)
 * Mentioning us on [Twitter](http://twitter.com/mycozycloud)
 

@@ -10,6 +10,10 @@
 @import '_layout'
 
 
+h2
+h3
+    font-weight: normal
+
 .mt1
     margin-top: 10px
 
@@ -22,8 +26,14 @@
 .mb2
     margin-bottom: 20px
 
+.main-container
+    height: 100%
+    position: relative
+
 #view-container
     border-bottom: 0
+    height: 100%
+
 
 .addform
   #date-control
@@ -41,6 +51,14 @@
 #action
     width: 110px
 
+#list-container
+    position: absolute
+    overflow-y: auto
+    left: 0px
+    right: 0px
+    top: 70px
+    bottom: 0px
+
 #alarm-list
     width: auto
     div
@@ -49,7 +67,7 @@
         font-weight: normal
 
     div
-        font-family: main
+        font-family: 'Source Sans Pro', sans-serif
 
     .badge
         margin-right 5px
@@ -98,5 +116,40 @@
         p
             margin: 0
             sharefont-weight: 10px
+
+#show-password
+#hide-password
+  margin-left 5px
+
+#hide-password
+  display none
+
+// 404 page (not found)
+
+body.error-404
+  background #fff
+
+body.error-404 .container
+  display table
+  overflow hidden
+  position relative
+  height 100%
+  margin auto
+
+body.error-404 .row
+  display table-cell
+  vertical-align middle
+
+body.error-404 .error-frame
+  padding 80px 40px
+  background #fff
+  border 10px solid blue
+  font-size 25px
+  text-align center
+
+  .headline
+    margin-bottom 50px
+    font-size 30px
+    color blue
 
 @import '_responsive'

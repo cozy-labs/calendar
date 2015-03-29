@@ -1,48 +1,34 @@
-ScheduleItemsCollection = require './scheduleitems'
+RealEventCollection = require './realevents'
+RealEventGeneratorCollection = require './realeventsgenerator'
 
 DayBucket = class DayBucket extends Backbone.Model
     constructor: (model) ->
         super
             id: model.getDateHash()
-            date: model.getDateObject().clone().beginningOfDay()
+            date: moment(model.start).startOf 'day'
+
     initialize: ->
-        @items = new ScheduleItemsCollection()
+        @items = new RealEventCollection()
 
 # DayBucket Collection
-# mix alarms & events into one collection
 # split into DayBucket (= group by day)
 module.exports = class DayBucketCollection extends Backbone.Collection
 
     model: DayBucket
-    comparator: (db1, db2) ->
-        d1 = Date.create db1.get('date')
-        d2 = Date.create db2.get('date')
-        if d1 < d2 then return -1
-        else if d1 > d2 then return 1
-        else return 0
+    comparator: 'id'
 
     initialize: ->
-        @alarmCollection = app.alarms
-        @eventCollection = app.events
-        @tagsCollection = app.tags
-
-        @listenTo @alarmCollection, 'add', @onBaseCollectionAdd
-        @listenTo @alarmCollection, 'change:trigg', @onBaseCollectionChange
-        @listenTo @alarmCollection, 'remove', @onBaseCollectionRemove
-        @listenTo @alarmCollection, 'reset', @resetFromBase
+        @eventCollection = new RealEventGeneratorCollection()
 
         @listenTo @eventCollection, 'add', @onBaseCollectionAdd
         @listenTo @eventCollection, 'change:start', @onBaseCollectionChange
         @listenTo @eventCollection, 'remove', @onBaseCollectionRemove
         @listenTo @eventCollection, 'reset', @resetFromBase
 
-        @listenTo @tagsCollection, 'change', @resetFromBase
-
         @resetFromBase()
 
     resetFromBase: ->
         @reset []
-        @alarmCollection.each (model) => @onBaseCollectionAdd model
         @eventCollection.each (model) => @onBaseCollectionAdd model
 
     onBaseCollectionChange: (model) ->
@@ -56,10 +42,6 @@ module.exports = class DayBucketCollection extends Backbone.Collection
 
     onBaseCollectionAdd: (model) ->
         bucket = @get model.getDateHash()
-
-        tag = @tagsCollection.findWhere label: model.getCalendar()
-        return null if tag and tag.get('visible') is false
-
         @add(bucket = new DayBucket model) unless bucket
         bucket.items.add model
 
@@ -68,3 +50,6 @@ module.exports = class DayBucketCollection extends Backbone.Collection
         bucket.items.remove model
         @remove bucket if bucket.items.length is 0
 
+    loadNextPage: (callback) -> @eventCollection.loadNextPage callback
+
+    loadPreviousPage: (callback) -> @eventCollection.loadPreviousPage callback

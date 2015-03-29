@@ -1,13 +1,13 @@
-americano = require 'americano-cozy-pouchdb'
+cozydb = require 'cozy-db-pouchdb'
 
-module.exports = Contact = americano.getModel 'Contact',
+module.exports = Contact = cozydb.getModel 'Contact',
     fn            : String
     n             : String
     datapoints    : [Object]
 
 
 Contact::asNameAndEmails = ->
-    name = @fn or @n?.split(';')[0..1].join(' ')
+    name = @fn or @n?.split(';')[0..1].join ' '
     emails = @datapoints?.filter (dp) -> dp.name is 'email'
     return simple =
         id: @id
