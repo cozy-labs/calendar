@@ -1,5 +1,5 @@
 BaseView = require '../lib/base_view'
-colorhash = require 'lib/colorhash'
+colorSet = require '../helpers/color-set'
 
 module.exports = class MenuItemView extends BaseView
 
@@ -13,47 +13,51 @@ module.exports = class MenuItemView extends BaseView
         'click .calendar-rename': 'onRenameCalendar'
         'click .calendar-export': 'onExportCalendar'
 
+        'click .calendar-actions': 'onCalendarMultipleSelect'
+
         'click .dropdown-toggle': 'hideColorPicker'
         'click .calendar-color': 'showColorPicker'
-        'change .color-picker': 'setColor'
+        'click .color': 'setColor'
         'blur input.calendar-name': 'onRenameValidation'
         'keyup input.calendar-name': 'onRenameValidation'
 
+
     getRenderData: ->
         label: @model.get 'name'
+        colorSet: colorSet
+
 
     afterRender: ->
         @buildBadge @model.get 'color'
+        @hideLoading()
+
 
     toggleVisible: ->
         unless app.router.onCalendar
             app.router.navigate 'calendar', true
-        @startSpinner()
+        @showLoading()
         # make asynchronous to allow the spinner to show up, before make.set
         # and it's heavy load events chain block the UI for à while.
         setTimeout =>
                 @model.set 'visible', not @model.get 'visible'
-                @stopSpinner()
+                @hideLoading()
                 @render()
             , 1
 
+
     showColorPicker: (ev) ->
         ev?.stopPropagation() # avoid dropdown auto close.
-
         @$('.color-picker').show()
-        @$('.calendar-color').hide()
+        @$('.calendar-color').parent().attr 'data-picker-visible', true
 
-        # TinyColorPicker seems buggy, refresh it on each open.
-        @colorPicker = @$('.color-picker')
-        @colorPicker.tinycolorpicker()
-        @$('.track').attr 'style', 'display: block;'
 
     hideColorPicker: =>
         @$('.color-picker').hide()
-        @$('.calendar-color').show()
+        @$('.calendar-color').parent().attr 'data-picker-visible', false
+
 
     setColor: (ev)  ->
-        color = @colorPicker.data()?.plugin_tinycolorpicker?.colorHex
+        color = @$(ev.target).css 'background-color'
         @model.set 'color', color
         @buildBadge color
         @model.save()
@@ -65,6 +69,21 @@ module.exports = class MenuItemView extends BaseView
         @$('.dropdown-toggle').on 'click', @hideColorPicker
 
 
+    onCalendarMultipleSelect: ->
+        actionMenu = $('#multiple-actions')
+        trashButton = $('.remove-cals', actionMenu)
+        nbCalendars = $('.calendar-actions').length
+        nbCalendarsChecked = $('.calendar-actions:checked').length
+        # We display the additional menu if 2 cals or more are checked
+        if nbCalendarsChecked > 1
+            actionMenu.removeClass 'hidden'
+        else
+            actionMenu.addClass 'hidden'
+        # We hide the trash icon if all calendars are selected
+        if nbCalendarsChecked == nbCalendars
+            trashButton.addClass 'hidden'
+        else
+            trashButton.removeClass 'hidden'
     # Handle `blur` and `keyup` (`enter` and `esc` keys) events in order to
     # rename a calendar.
     onRenameValidation: (event) ->
@@ -75,23 +94,17 @@ module.exports = class MenuItemView extends BaseView
         key = event.keyCode or event.charCode
          # `escape` key cancels the edition.
         if key is 27
-            input.remove()
-            # re-appends text element
-            @rawTextElement.insertAfter @$('.badge')
 
-            # Restores the badge color
-            @buildBadge calendarName
-
-            # Shows the menu again
-            @$('.dropdown-toggle').show()
+            @hideInput input, calendarName
 
         # `blur` event and `enter` key trigger the persistence
         else if (key is 13 or event.type is 'focusout')
-            @startSpinner()
+            @showLoading()
             app.calendars.rename calendarName, input.val(), =>
-                @stopSpinner()
+                @hideLoading()
+                @hideInput input, calendarName
         else
-            @buildBadge colorhash input.val()
+            @buildBadge ColorHash.getColor(input.val(), 'color')
 
 
     # Replace the calendar's name by an input to edit the name.
@@ -119,14 +132,31 @@ module.exports = class MenuItemView extends BaseView
     onRemoveCalendar: ->
         calendarName = @model.get 'name'
         message = t 'confirm delete calendar', {calendarName}
+
         if confirm(message)
-            @startSpinner()
+            @showLoading()
+
             app.calendars.remove calendarName, =>
-                @stopSpinner()
+                @hideLoading()
+
+
+    hideInput: (input, calendarName) ->
+        input.remove()
+
+        # re-appends text element
+        @rawTextElement.insertAfter @$('.badge')
+
+        # Restores the badge color
+        @buildBadge calendarName
+
+        # Shows the menu again
+        @$('.dropdown-toggle').show()
+
 
     onExportCalendar: ->
         calendarName = @model.get 'name'
         window.location = "export/#{calendarName}.ics"
+
 
     buildBadge: (color) ->
         visible = @model.get 'visible'
@@ -138,8 +168,10 @@ module.exports = class MenuItemView extends BaseView
             'border': "1px solid #{borderColor}"
         @$('.badge').css styles
 
-    startSpinner: ->
-        @$('.spinHolder').show()
 
-    stopSpinner: ->
-        @$('.spinHolder').hide()
+    showLoading: ->
+        @$('.spinner').show()
+
+
+    hideLoading: ->
+        @$('.spinner').hide()

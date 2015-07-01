@@ -92,8 +92,11 @@ module.exports = class EventPopOver extends PopoverView
         @$('input[type="time"]').attr('type', 'text')
                                 .timepicker defTimePickerOpts
                                 .delegate timepickerEvents
-        @$('input[type="date"]').attr('type', 'text')
-                                .datetimepicker defDatePickerOps
+
+        # Chrome is really bad with HTML5 form so it always get an error of
+        # validation. As a result we don't use a type=date, but a type=text.
+        @$('.input-date').datetimepicker defDatePickerOps
+
         @$('[tabindex=1]').focus()
 
         @calendar = new ComboBox
@@ -268,7 +271,7 @@ module.exports = class EventPopOver extends PopoverView
                 error: ->
                     alert t('server error occured')
                 complete: =>
-                    @spinner.show()
+                    @spinner.hide()
                     @selfclose()
 
 
@@ -281,7 +284,16 @@ module.exports = class EventPopOver extends PopoverView
         delete attrs._id
 
         calendarEvent = new Event attrs
-        calendarEvent.save()
+        @duplicateButton.hide()
+        @spinner.show()
+        calendarEvent.save null,
+            wait: true
+            success: =>
+                @duplicateButton.show()
+                @spinner.hide()
+            error: =>
+                @duplicateButton.show()
+                @spinner.hide()
 
 
     onAddClicked: ->

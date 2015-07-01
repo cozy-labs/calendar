@@ -18,3 +18,19 @@ User.updateUser = function(callback) {
     return typeof callback === "function" ? callback() : void 0;
   });
 };
+
+User.getUserInfos = function(callback) {
+  return cozydb.api.getCozyUser(function(err, user) {
+    var name, words, _ref;
+    if (err) {
+      return callback(err);
+    }
+    name = ((_ref = user.public_name) != null ? _ref.length : void 0) ? user.public_name : (words = user.email.split('@')[0].replace(/([\.-]+)/g, ' ').split(' '), words.map(function(word) {
+      return word[0].toUpperCase() + word.slice(1);
+    }).join(' '));
+    return callback(null, {
+      name: name,
+      email: user.email
+    });
+  });
+};
