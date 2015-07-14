@@ -2,7 +2,8 @@ americano = require 'americano'
 path = require 'path'
 fs = require 'fs'
 
-publicPath = path.join __dirname, "..", "client/public"
+clientPath = path.join __dirname, "..", "client"
+publicPath = path.join __dirname, "..", "client", "public"
 staticMiddleware = americano.static publicPath, maxAge: 86400000
 publicStatic = (req, res, next) ->
 
@@ -29,7 +30,8 @@ module.exports =
                 showStack: true
         ]
         set:
-             views: './client'
+            views: clientPath
+
         engine:
             js: (path, locales, callback) ->
                 callback null, require(path)(locales)

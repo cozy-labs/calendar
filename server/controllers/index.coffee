@@ -1,10 +1,23 @@
 async = require 'async'
+path = require 'path'
+fs = require 'fs'
 Tag = require '../models/tag'
 Event = require '../models/event'
 Contact = require '../models/contact'
 User  = require '../models/user'
 cozydb = require 'cozy-db-pouchdb'
 WebDavAccount = require '../models/webdavaccount'
+
+
+# Tell if the compiled version of jade templates can be used or not.
+getTemplateExtension = ->
+    # If run from build/, templates are compiled to JS
+    # otherwise, they are in jade
+    filePath = path.resolve __dirname, '../../client/index.js'
+    runFromBuild = fs.existsSync filePath
+    extension = if runFromBuild then 'js' else 'jade'
+    return extension
+
 
 module.exports.index = (req, res) ->
     async.parallel [
@@ -32,7 +45,8 @@ module.exports.index = (req, res) ->
             if webDavAccount?
                 webDavAccount.domain = instance?.domain or ''
 
-            res.render 'index.jade', imports: """
+            extension = getTemplateExtension()
+            res.render "index.#{extension}", imports: """
                 window.locale = "#{locale}";
                 window.inittags = #{JSON.stringify tags};
                 window.initevents = #{JSON.stringify events};
